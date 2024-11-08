@@ -1,0 +1,14 @@
+Drive Constants:
+	Ticks Per Rev	: 103.6
+	Max RPM		: 435
+	Wheel Radius	:
+	Gear Ratio	: 13:7:1
+	Track Width	: 
+	
+	Supposed Max Vel: 182.2123 *Re calc when gear ratio
+
+Driving Motors Used: 
+
+Important:
+	GEAR_RATIO is something I don't know
+	Change max accel at some point if need be
