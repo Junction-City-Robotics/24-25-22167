@@ -19,10 +19,7 @@ public class ViperSlideTest extends LinearOpMode {
         viperSlide.ResetRunWithEncoders();
         viperSlide.ZeroPowerBreakMode();
 
-        // Wait for the game to start (driver presses PLAY)
         waitForStart();
-
-        // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             if (gamepad1.dpad_up) {
                 viperSlide.SetPower(0.5);
@@ -38,24 +35,30 @@ public class ViperSlideTest extends LinearOpMode {
             if (gamepad1.right_bumper && !has_clicked) {
                 slide_position += 5;
                 has_clicked = true;
+                viperSlide.CustomPosition(slide_position);
             } else if (gamepad1.right_trigger > 0 && !has_clicked) {
                 slide_position += 20;
                 has_clicked = true;
+                viperSlide.CustomPosition(slide_position);
             } else if (gamepad1.dpad_right && !has_clicked) {
                 slide_position += 1;
                 has_clicked = true;
+                viperSlide.CustomPosition(slide_position);
             }
 
             // Subtracting To Positions
             if (gamepad1.left_bumper && !has_clicked) {
                 slide_position += 5;
                 has_clicked = true;
+                viperSlide.CustomPosition(slide_position);
             } else if (gamepad1.left_trigger > 0 && !has_clicked) {
                 slide_position += 20;
                 has_clicked = true;
+                viperSlide.CustomPosition(slide_position);
             } else if (gamepad1.dpad_left && !has_clicked) {
                 slide_position += 1;
                 has_clicked = true;
+                viperSlide.CustomPosition(slide_position);
             }
 
             // Resetting Has Clicked
@@ -70,7 +73,11 @@ public class ViperSlideTest extends LinearOpMode {
             telemetry.addData("Bottom Position", ViperSlide.BOTTOM_POSITION);
             telemetry.addData("Slide Position", slide_position);
             telemetry.addData("Is Clicking", has_clicked);
-            telemetry.addData("Instructions", "");
+            telemetry.addData("Instructions", "The 'Slide Position' Is the set position the viper slide is currently at." +
+                    "Pressing The Dpad Up will set it to the usual up position, and the dpad down will set it to the usual down position." +
+                    "Pressing Right Bumper will ad 5 to it, right trigger will add 20, and dpad right will add 1." +
+                    "Use the left variants will subtract instead of add. It will then go to that position. Record the positions you want to" +
+                    " save, so you have the correct positions.");
             telemetry.update();
         }
     }
