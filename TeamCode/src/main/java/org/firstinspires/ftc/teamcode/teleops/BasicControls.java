@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.teleops;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.systems.BasicDrive;
@@ -35,7 +36,8 @@ public class BasicControls extends LinearOpMode {
         drive.RunWithEncoders();
 
         ViperSlide viperSlide = new ViperSlide("v1", "v2");
-        viperSlide.RunWithEncoders();
+        viperSlide.SetDirections(DcMotorSimple.Direction.FORWARD, DcMotorSimple.Direction.REVERSE);
+        viperSlide.ResetRunWithEncoders();
         viperSlide.ZeroPowerBreakMode();
 
         PassThrough passThrough = new PassThrough("brush", "bucket", "wrist");
