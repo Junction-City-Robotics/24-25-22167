@@ -2,28 +2,33 @@ package org.firstinspires.ftc.teamcode.systems;
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
 
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 public class PassThrough {
     private final Servo brush;
     private final Servo bucket;
-    private final Servo wrist;
+    private final DcMotor wrist;
 
     // CONSTANTS
+    // Brush
     private final static double BRUSH_INTAKE = 1.0;
     private final static double BRUSH_OUTPUT = -1.0;
     private final static double BRUSH_STOP = 0.5;
 
+    // Bucket
     private final static double BUCKET_DOWN = 0.9;
     private final static double BUCKET_UP = 0.48;
 
-    private final static double WRIST_PICKUP_POSITION = 0.187;
-    private final static double WRIST_DEPOSIT_POSITION = 0.74;
+    // Wrist
+    public final static int WRIST_PICKUP_POSITION = 187;
+    public final static int WRIST_STALL_POSITION = 90;
+    public final static int WRIST_DEPOSIT_POSITION = 0;
 
     public PassThrough(String brush, String bucket, String wrist) {
         this.brush = hardwareMap.get(Servo.class, brush);
         this.bucket = hardwareMap.get(Servo.class, bucket);
-        this.wrist = hardwareMap.get(Servo.class, wrist);
+        this.wrist = hardwareMap.get(DcMotor.class, wrist);
     }
 
     // Bucket Controlling Functions
@@ -35,11 +40,25 @@ public class PassThrough {
     }
 
     // Wrist / Arm Moving
+    public void WristStart() {
+        wrist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        wrist.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
     public void WristPickup() {
-        wrist.setPosition(WRIST_PICKUP_POSITION);
+        wrist.setTargetPosition(WRIST_PICKUP_POSITION);
+    }
+    public void WristStallPosition() {
+        wrist.setTargetPosition(WRIST_STALL_POSITION);
     }
     public void WristDeposit() {
-        wrist.setPosition(WRIST_DEPOSIT_POSITION);
+        wrist.setTargetPosition(WRIST_DEPOSIT_POSITION);
+    }
+    public void WristCustomPosition(int position) {
+        wrist.setTargetPosition(position);
+    }
+    public void WristPower(double power) {
+        wrist.setPower(power);
     }
 
     // Brush Controls
