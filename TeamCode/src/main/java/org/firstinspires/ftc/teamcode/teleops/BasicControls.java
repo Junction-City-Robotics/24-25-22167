@@ -37,6 +37,8 @@ public class BasicControls extends LinearOpMode {
 
         ViperSlide viperSlide = new ViperSlide("v1", "v2");
         viperSlide.SetDirections(DcMotorSimple.Direction.FORWARD, DcMotorSimple.Direction.REVERSE);
+        viperSlide.SetPower(0.0);
+        viperSlide.Down();
         viperSlide.ResetRunWithEncoders();
         viperSlide.ZeroPowerBreakMode();
 
@@ -59,6 +61,8 @@ public class BasicControls extends LinearOpMode {
 
         // PUT CODE HERE FOR STARTING
         // Setting to Start
+        viperSlide.SetPower(0.5);
+
         passThrough.WristDeposit();
         passThrough.BucketDown();
 
@@ -76,10 +80,6 @@ public class BasicControls extends LinearOpMode {
                 }
                 time_ordered_controls.remove(0);
             }
-
-            // EASES => Used to make controls feel better
-            // easeOutSine | Math.sin((X * Math.PI) / 2)
-            // easeOutCircle | Math.sqrt(1 - Math.pow(X - 1, 2))
 
             // Moving The robot with chosen action
             if (Objects.equals(chosen_button, "Stop")) {
@@ -180,11 +180,19 @@ public class BasicControls extends LinearOpMode {
 
             // Gamepad 2 Controls | Viper Slide
             if (gamepad2.right_stick_y > 0.0) {
-                viperSlide.Up(Math.sin((Math.abs(gamepad2.right_stick_y) * Math.PI) / 2));
+                double speed = 0.5;
+                if (Math.abs(gamepad2.right_stick_y) > 0.8) {
+                    speed = 1.0;
+                }
+                viperSlide.SetPower(speed);
+                viperSlide.Up();
             } else if (gamepad2.right_stick_y < 0.0) {
-                viperSlide.Down(Math.sin((Math.abs(gamepad2.right_stick_y) * Math.PI) / 2));
-            } else {
-                viperSlide.Stop();
+                double speed = 0.5;
+                if (Math.abs(gamepad2.right_stick_y) > 0.8) {
+                    speed = 1.0;
+                }
+                viperSlide.SetPower(speed);
+                viperSlide.Down();
             }
 
             if (gamepad2.right_trigger > 0.0 && !(gamepad2.left_trigger > 0.0)) {
