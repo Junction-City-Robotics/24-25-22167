@@ -1,9 +1,8 @@
 package org.firstinspires.ftc.teamcode.systems;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
-
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class ViperSlide {
     // Motor Classes
@@ -14,15 +13,17 @@ public class ViperSlide {
     private DcMotorSimple.Direction v2Direction;
 
     // Needed Positions
-    public final static int TOP_POSITION = 1000;
+    public final static int TOP_POSITION = 6000;
     public final static int BOTTOM_POSITION = 0;
 
-    public ViperSlide(String v1, String v2) {
-        this.v1 = hardwareMap.get(DcMotor.class, v1);
-        this.v2 = hardwareMap.get(DcMotor.class, v2);
+    public ViperSlide(String viper_1, String viper_2, HardwareMap map) {
+        this.v1 = map.get(DcMotor.class, viper_1);
+        this.v2 = map.get(DcMotor.class, viper_2);
     }
 
     public void ResetRunWithEncoders() {
+        CustomPosition(0);
+
         v1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         v2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
@@ -68,6 +69,16 @@ public class ViperSlide {
     public void SetPower(double power) {
         v1.setPower(power);
         v2.setPower(power);
+    }
+
+    public void Update() {
+        if (v1.getCurrentPosition() < v1.getTargetPosition()) {
+            SetPower(0.5);
+        } else if (v1.getCurrentPosition() > v1.getTargetPosition()) {
+            SetPower(-0.5);
+        } else {
+            SetPower(0.0);
+        }
     }
 
     public void SetDirections(DcMotorSimple.Direction v1Direction, DcMotorSimple.Direction v2Direction) {

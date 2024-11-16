@@ -41,6 +41,8 @@ public class PassThrough {
 
     // Wrist / Arm Moving
     public void WristStart() {
+        wrist.setPower(0.0);
+
         wrist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         wrist.setMode(DcMotor.RunMode.RUN_USING_ENCODER);

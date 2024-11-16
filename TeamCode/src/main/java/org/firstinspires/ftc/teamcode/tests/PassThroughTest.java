@@ -4,18 +4,20 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.systems.PassThrough;
+import org.firstinspires.ftc.teamcode.utilities.OutputUpdater;
 
 @TeleOp(name = "Pass Through System Tests", group = "tests")
 public class PassThroughTest extends LinearOpMode {
+    private final OutputUpdater outputUpdater = new OutputUpdater(telemetry);
 
     @Override
     public void runOpMode() {
         boolean has_clicked = false;
         int wrist_position = PassThrough.WRIST_DEPOSIT_POSITION;
 
-        PassThrough passThrough = new PassThrough("", "", "");
+        PassThrough passThrough = new PassThrough("brush", "bucket", "wrist");
         passThrough.WristStart();
-        passThrough.WristPower(0.5);
+        passThrough.WristPower(0.2);
 
         waitForStart();
         while (opModeIsActive()) {
@@ -78,8 +80,9 @@ public class PassThroughTest extends LinearOpMode {
             telemetry.addData("Instructions", "This is the Pass Through System Test." +
                     "This is to test the intake brush, bucket, and wrist. The brush and bucket" +
                     "You can only change the brush & bucket in the code, and test here. You can" +
-                    " change the wrist position.");
-            telemetry.update();
+                    " change the wrist position. You can change the value using the Dpad. Left and " +
+                    "Down subtract, right and up add.");
+            outputUpdater.Update();
         }
     }
 }

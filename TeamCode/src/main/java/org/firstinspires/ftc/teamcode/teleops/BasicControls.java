@@ -35,7 +35,7 @@ public class BasicControls extends LinearOpMode {
         BasicDrive drive = new BasicDrive("fl", "bl", "fr", "br");
         drive.RunWithEncoders();
 
-        ViperSlide viperSlide = new ViperSlide("v1", "v2");
+        ViperSlide viperSlide = new ViperSlide("v1", "v2", hardwareMap);
         viperSlide.SetDirections(DcMotorSimple.Direction.FORWARD, DcMotorSimple.Direction.REVERSE);
         viperSlide.SetPower(0.0);
         viperSlide.Down();
