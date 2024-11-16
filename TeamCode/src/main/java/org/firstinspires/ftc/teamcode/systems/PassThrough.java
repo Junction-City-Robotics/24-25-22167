@@ -20,7 +20,7 @@ public class PassThrough {
     private final static double BUCKET_UP = 0.48;
 
     // Wrist
-    public final static int WRIST_PICKUP_POSITION = 1050;
+    public final static int WRIST_PICKUP_POSITION = 1090;
     public final static int WRIST_STALL_POSITION = 770;
     public final static int WRIST_DEPOSIT_POSITION = 0;
 
