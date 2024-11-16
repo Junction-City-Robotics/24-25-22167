@@ -4,20 +4,19 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.systems.PassThrough;
-import org.firstinspires.ftc.teamcode.utilities.OutputUpdater;
 
 @TeleOp(name = "Pass Through System Tests", group = "tests")
 public class PassThroughTest extends LinearOpMode {
-    private final OutputUpdater outputUpdater = new OutputUpdater(telemetry);
-
     @Override
     public void runOpMode() {
         boolean has_clicked = false;
         int wrist_position = PassThrough.WRIST_DEPOSIT_POSITION;
 
-        PassThrough passThrough = new PassThrough("brush", "bucket", "wrist");
+        PassThrough passThrough = new PassThrough("brush", "bucket", "wrist", hardwareMap);
+        passThrough.WristCustomPosition(0);
+        passThrough.WristPower(0.0);
         passThrough.WristStart();
-        passThrough.WristPower(0.2);
+        passThrough.WristPower(0.0);
 
         waitForStart();
         while (opModeIsActive()) {
@@ -25,21 +24,21 @@ public class PassThroughTest extends LinearOpMode {
             if (gamepad1.right_trigger > 0) {
                 passThrough.BrushIntake();
             } else if (gamepad1.left_trigger > 0) {
-                passThrough.BrushOutput();
+                passThrough.BrushIntake();
             } else {
                 passThrough.BrushStop();
             }
 
             // Wrist Movements
             if (gamepad1.left_stick_y > 0.4) {
-                wrist_position = PassThrough.WRIST_DEPOSIT_POSITION;
-                passThrough.WristCustomPosition(wrist_position);
+                passThrough.WristPower(0.8);
+                passThrough.WristDeposit();
             } else if (gamepad1.left_stick_y < -0.4) {
-                wrist_position = PassThrough.WRIST_PICKUP_POSITION;
-                passThrough.WristCustomPosition(wrist_position);
+                passThrough.WristPower(0.8);
+                passThrough.WristPickup();
             } else if (gamepad1.left_stick_button) {
-                wrist_position = PassThrough.WRIST_STALL_POSITION;
-                passThrough.WristCustomPosition(wrist_position);
+                passThrough.WristStallPosition();
+                passThrough.WristPower(0.8);
             }
 
             // Position Incrementing
@@ -56,7 +55,7 @@ public class PassThroughTest extends LinearOpMode {
             } else if (gamepad1.dpad_up) {
                 if (!has_clicked) {
                     has_clicked = true;
-                    wrist_position -= 20;
+                    wrist_position += 20;
                 }
             } else if (gamepad1.dpad_down) {
                 if (!has_clicked) {
@@ -75,6 +74,7 @@ public class PassThroughTest extends LinearOpMode {
             }
 
             // Show the output for drivers
+            telemetry.addData("Current Pos", passThrough.Wrist().getCurrentPosition());
             telemetry.addData("Wrist Position", wrist_position);
             telemetry.addData("Is Clicking", has_clicked);
             telemetry.addData("Instructions", "This is the Pass Through System Test." +
@@ -82,7 +82,7 @@ public class PassThroughTest extends LinearOpMode {
                     "You can only change the brush & bucket in the code, and test here. You can" +
                     " change the wrist position. You can change the value using the Dpad. Left and " +
                     "Down subtract, right and up add.");
-            outputUpdater.Update();
+            telemetry.update();
         }
     }
 }

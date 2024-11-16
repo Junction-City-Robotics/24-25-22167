@@ -1,8 +1,7 @@
 package org.firstinspires.ftc.teamcode.systems;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
-
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 public class PassThrough {
@@ -12,20 +11,20 @@ public class PassThrough {
 
     // CONSTANTS
     // Brush
-    private final static double BRUSH_INTAKE = 1.0;
-    private final static double BRUSH_OUTPUT = -1.0;
+    private final static double BRUSH_INTAKE = -1.0;
+    private final static double BRUSH_OUTPUT = 1.0;
     private final static double BRUSH_STOP = 0.5;
 
     // Bucket
-    private final static double BUCKET_DOWN = 0.9;
+    private final static double BUCKET_DOWN = 0.96;
     private final static double BUCKET_UP = 0.48;
 
     // Wrist
-    public final static int WRIST_PICKUP_POSITION = 187;
-    public final static int WRIST_STALL_POSITION = 90;
+    public final static int WRIST_PICKUP_POSITION = 1050;
+    public final static int WRIST_STALL_POSITION = 770;
     public final static int WRIST_DEPOSIT_POSITION = 0;
 
-    public PassThrough(String brush, String bucket, String wrist) {
+    public PassThrough(String brush, String bucket, String wrist, HardwareMap hardwareMap) {
         this.brush = hardwareMap.get(Servo.class, brush);
         this.bucket = hardwareMap.get(Servo.class, bucket);
         this.wrist = hardwareMap.get(DcMotor.class, wrist);
@@ -46,6 +45,8 @@ public class PassThrough {
         wrist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         wrist.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        wrist.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
     public void WristPickup() {
         wrist.setTargetPosition(WRIST_PICKUP_POSITION);
@@ -62,6 +63,7 @@ public class PassThrough {
     public void WristPower(double power) {
         wrist.setPower(power);
     }
+    public DcMotor Wrist() { return wrist; }
 
     // Brush Controls
     public void BrushIntake() {

@@ -17,8 +17,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-@TeleOp(name = "Basic Controls", group = "teleop")
-public class BasicControls extends LinearOpMode {
+@TeleOp(name = "T1 Controls", group = "teleop")
+public class T1Controls extends LinearOpMode {
 
     private final ElapsedTime runtime = new ElapsedTime();
 
@@ -41,8 +41,11 @@ public class BasicControls extends LinearOpMode {
         viperSlide.Down();
         viperSlide.ResetRunWithEncoders();
         viperSlide.ZeroPowerBreakMode();
+        viperSlide.StartRunToPosition();
 
         PassThrough passThrough = new PassThrough("brush", "bucket", "wrist", hardwareMap);
+        passThrough.WristStart();
+        passThrough.WristPower(0.0);
 
         telemetry.addData("Systems", "Initialized");
 
@@ -59,9 +62,9 @@ public class BasicControls extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
-        // PUT CODE HERE FOR STARTING
         // Setting to Start
-        viperSlide.SetPower(0.5);
+        viperSlide.SetPower(0.8);
+        viperSlide.Down();
 
         passThrough.WristDeposit();
         passThrough.BucketDown();
@@ -179,47 +182,41 @@ public class BasicControls extends LinearOpMode {
             }
 
             // Gamepad 2 Controls | Viper Slide
-            if (gamepad2.right_stick_y > 0.0) {
-                double speed = 0.5;
-                if (Math.abs(gamepad2.right_stick_y) > 0.8) {
-                    speed = 1.0;
-                }
-                viperSlide.SetPower(speed);
-                viperSlide.Up();
-            } else if (gamepad2.right_stick_y < 0.0) {
-                double speed = 0.5;
-                if (Math.abs(gamepad2.right_stick_y) > 0.8) {
-                    speed = 1.0;
-                }
-                viperSlide.SetPower(speed);
+            if (gamepad2.right_stick_y > 0) {
+                viperSlide.SetPower(1.0);
                 viperSlide.Down();
+            } else if (gamepad2.right_stick_y < 0) {
+                viperSlide.SetPower(1.0);
+                viperSlide.Up();
+            } else if (gamepad2.right_stick_button) {
+                viperSlide.SetPower(0.0);
             }
 
-            if (gamepad2.right_trigger > 0.0 && !(gamepad2.left_trigger > 0.0)) {
-                telemetry.addData("Flip", "Forward");
+            // Pass through system
+            if (gamepad2.right_trigger > 0.0 || gamepad2.right_bumper) {
                 passThrough.BrushIntake();
-            } else if (gamepad2.left_trigger > 0.0 && !(gamepad2.right_trigger > 0.0)) {
-                telemetry.addData("Flip", "Reverse");
+            } else if (gamepad2.left_trigger > 0.0 || gamepad2.left_bumper) {
                 passThrough.BrushOutput();
             } else {
-                telemetry.addData("Flip", "Stopped");
                 passThrough.BrushStop();
             }
 
-            if (gamepad2.right_bumper && !gamepad2.left_bumper) {
+            if (gamepad2.dpad_down) {
+                passThrough.WristPower(0.9);
                 passThrough.WristDeposit();
-            } else if (gamepad2.left_bumper && !gamepad2.right_bumper) {
+            } else if (gamepad2.dpad_up) {
+                passThrough.WristPower(0.9);
                 passThrough.WristPickup();
+            } else if (gamepad2.dpad_left || gamepad2.dpad_right) {
+                passThrough.WristPower(0.9);
+                passThrough.WristStallPosition();
             }
 
             if (gamepad2.left_stick_y > 0.0) {
                 passThrough.BucketDown();
-                telemetry.addData("Bucket", "Down");
             } else if (gamepad2.left_stick_y < 0.0) {
                 passThrough.BucketUp();
-                telemetry.addData("Bucket", "Up");
             }
-
 
             // Show the output for drivers
             telemetry.addData("Button Active", chosen_button);

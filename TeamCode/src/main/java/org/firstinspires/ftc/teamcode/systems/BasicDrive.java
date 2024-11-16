@@ -1,8 +1,7 @@
 package org.firstinspires.ftc.teamcode.systems;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
-
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class BasicDrive {
     private final DcMotor fl;
@@ -11,7 +10,7 @@ public class BasicDrive {
     private final DcMotor fr;
     private final DcMotor br;
 
-    public BasicDrive(String fl, String bl, String fr, String br) {
+    public BasicDrive(String fl, String bl, String fr, String br, HardwareMap hardwareMap) {
         this.fl = hardwareMap.get(DcMotor.class, fl);
         this.bl = hardwareMap.get(DcMotor.class, bl);;
         this.fr = hardwareMap.get(DcMotor.class, fr);;
