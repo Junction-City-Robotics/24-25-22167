@@ -4,60 +4,80 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.control.systems.inputOutput.Claw;
+import org.firstinspires.ftc.teamcode.control.systems.inputOutput.Link;
 
 @TeleOp(name = "Claw Tuner", group = "tuners")
 public class ClawTuner extends LinearOpMode {
-    // Positions
-    private double hingePosition = 0;
-    private double clawPosition = 0;
+    private double fingerPosition = 0.38;
+    private double wristPosition = 0.68;
+    private double elbowPosition = 0.45;
+    private double armPosition = 0.35;
 
-    // Input handling button repetitive canceling
-    private boolean dpadIsClicked = false;
-    private boolean elseIsClicked = false;
+    private boolean isClicked = false;
 
     @Override
     public void runOpMode() {
-        Claw claw = new Claw("claw", "hinge", hardwareMap);
+        // Link init
+        Claw claw = new Claw("finger", "wrist", "elbow", "arm", hardwareMap);
 
         waitForStart();
         while (opModeIsActive()) {
-            // Hinge input
+            // Input Handling
             if (gamepad1.dpad_up) {
-                if (!dpadIsClicked) {
-                    hingePosition += 0.1;
-                    dpadIsClicked = true;
+                if (!isClicked) {
+                    fingerPosition += 0.05;
+                    isClicked = true;
                 }
             } else if (gamepad1.dpad_down) {
-                if (!dpadIsClicked) {
-                    hingePosition -= 0.1;
-                    dpadIsClicked = true;
+                if (!isClicked) {
+                    fingerPosition -= 0.05;
+                    isClicked = true;
                 }
-            } else {
-                dpadIsClicked = false;
-            }
-
-            // Claw
-            if (gamepad1.y) {
-                if (!elseIsClicked) {
-                    clawPosition += 0.1;
-                    elseIsClicked = true;
+            } else if (gamepad1.y) {
+                if (!isClicked) {
+                    wristPosition += 0.05;
+                    isClicked = true;
                 }
             } else if (gamepad1.a) {
-                if (!elseIsClicked) {
-                    clawPosition -= 0.1;
-                    elseIsClicked = true;
+                if (!isClicked) {
+                    wristPosition -= 0.05;
+                    isClicked = true;
+                }
+            } else if (gamepad1.left_bumper) {
+                if (!isClicked) {
+                    elbowPosition += 0.05;
+                    isClicked = true;
+                }
+            } else if (gamepad1.right_bumper) {
+                if (!isClicked) {
+                    elbowPosition -= 0.05;
+                    isClicked = true;
+                }
+            } else if (gamepad1.left_stick_button) {
+                if (!isClicked) {
+                    armPosition += 0.05;
+                    isClicked = true;
+                }
+            } else if (gamepad1.right_stick_button) {
+                if (!isClicked) {
+                    armPosition -= 0.05;
+                    isClicked = true;
                 }
             } else {
-                elseIsClicked = false;
+                isClicked = false;
             }
 
-            // Setting positions
-            claw.customClawPosition(clawPosition);
-            claw.customHingePosition(hingePosition);
+            // Updating position
+            claw.setCustomFingerPosition(fingerPosition);
+            claw.setCustomWristPosition(wristPosition);
+            claw.setCustomElbowPosition(elbowPosition);
+            claw.setCustomArmPosition(armPosition);
 
-            // Output
-            telemetry.addData("Hinge Position", hingePosition + "");
-            telemetry.addData("Claw Position", clawPosition + "");
+            // Telemetry
+            telemetry.addData("Finger", fingerPosition);
+            telemetry.addData("Wrist", wristPosition);
+            telemetry.addData("Elbow", elbowPosition);
+            telemetry.addData("Arm", armPosition);
             telemetry.update();
         }
     }

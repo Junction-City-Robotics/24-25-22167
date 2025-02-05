@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.control.opmodes.teleops;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.teamcode.control.systems.inputOutput.Brush;
 import org.firstinspires.ftc.teamcode.control.systems.inputOutput.Claw;
 import org.firstinspires.ftc.teamcode.control.systems.inputOutput.Link;
 import org.firstinspires.ftc.teamcode.control.systems.inputOutput.ViperSlide;
@@ -15,7 +14,6 @@ public class BaseTeleop extends LinearOpMode {
 
     // Systems
     protected ViperSlide vs;
-    protected Brush brush;
     protected Claw claw;
     protected Link link;
 
@@ -36,9 +34,8 @@ public class BaseTeleop extends LinearOpMode {
 
     private void initSystems() {
         // External IO Systems
-        vs = new ViperSlide("viper_1", "viper_2", hardwareMap);
-        brush = new Brush("wrist", "brush", hardwareMap);
-        claw = new Claw("claw", "hinge", hardwareMap);
+        vs = new ViperSlide("viper_1", "viper_2", "viper_claw", "hinge", hardwareMap);
+        claw = new Claw("finger", "wrist", "elbow", "arm", hardwareMap);
         link = new Link("l1", "l2", hardwareMap);
 
         // RR Drive System

@@ -20,16 +20,18 @@ public class ControllerActionManager {
             "leftStick",
             "rightStick",
 
-            "dpadLeft",
-            "dpadRight",
-            "dpadUp",
-            "dpadDown",
-
             "rightTrigger",
             "leftTrigger",
             "rightBumper",
             "leftBumper"
     };
+
+    private static final String[] VIPER_SLIDE_BUTTONS = new String[] {
+            "dpadUp",
+            "dpadDown",
+            "dpadSide"
+    };
+
 
     private static final String[] CLAW_TRACKED_BUTTONS = new String[] {
             "a",
@@ -41,24 +43,9 @@ public class ControllerActionManager {
             "rightBumper"
     };
 
-    private static final String[] BRUSH_TRACKED_BUTTONS = new String[] {
-            "rightTrigger",
-            "leftTrigger",
-
-            "dpadUp",
-            "dpadDown",
-            "dpadSide"
-    };
-
     private static final String[] LINK_TRACKED_BUTTONS = new String[] {
             "rightStickUp",
             "rightStickDown"
-    };
-
-    private static final String[] VIPER_SLIDE_BUTTONS = new String[] {
-            "leftStickDown",
-            "leftStickUp",
-            "leftStickSide"
     };
 
     // Sections
@@ -77,7 +64,6 @@ public class ControllerActionManager {
 
         // Controller 2 (Systems)
         sections.put("claw", new ClawButtonSection("drive", CLAW_TRACKED_BUTTONS));
-        sections.put("brush", new BrushButtonSection("drive", BRUSH_TRACKED_BUTTONS));
         sections.put("link", new LinkButtonSection("drive", LINK_TRACKED_BUTTONS));
         sections.put("viperSlide", new ViperSlideButtonSection("drive", VIPER_SLIDE_BUTTONS));
     }

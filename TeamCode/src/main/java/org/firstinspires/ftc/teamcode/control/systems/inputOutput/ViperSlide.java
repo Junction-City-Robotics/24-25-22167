@@ -3,11 +3,15 @@ package org.firstinspires.ftc.teamcode.control.systems.inputOutput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 public class ViperSlide {
     // Motor Classes
     private final DcMotor v1;
     private final DcMotor v2;
+
+    private final Servo claw;
+    private final Servo hinge;
 
     private int offset = 0;
 
@@ -16,22 +20,37 @@ public class ViperSlide {
     public final static int HALF_POSITION = 3000;
     public final static int BOTTOM_POSITION = 10;
 
+    // Claw Positions
+    public final static double CLAW_OPEN = 0.15;
+    public final static double CLAW_CLOSE = 0.0;
+
+    // Hinge Positions
+    private final static double HINGE_PICKUP = 0.09;
+    private final static double HINGE_BAR = 0.5;
+    private final static double HINGE_BUCKET = 0.9;
+
     // Directions
     private final static DcMotorSimple.Direction[] FORWARD_DIRECTIONS = {
         DcMotorSimple.Direction.FORWARD,
         DcMotorSimple.Direction.REVERSE
     };
 
-    public ViperSlide(String viper_1, String viper_2, HardwareMap hMap) {
+    public ViperSlide(String viper_1, String viper_2, String claw, String hinge, HardwareMap hMap) {
         this.v1 = hMap.get(DcMotor.class, viper_1);
         this.v2 = hMap.get(DcMotor.class, viper_2);
+
+        this.claw = hMap.get(Servo.class, claw);
+        this.hinge = hMap.get(Servo.class, hinge);
 
         completeSetup();
     }
 
-    public ViperSlide(String viper_1, String viper_2, HardwareMap hMap, boolean setup) {
+    public ViperSlide(String viper_1, String viper_2, String claw, String hinge, HardwareMap hMap, boolean setup) {
         this.v1 = hMap.get(DcMotor.class, viper_1);
         this.v2 = hMap.get(DcMotor.class, viper_2);
+
+        this.claw = hMap.get(Servo.class, claw);
+        this.hinge = hMap.get(Servo.class, hinge);
 
         if (setup) {
             completeSetup();
@@ -188,5 +207,33 @@ public class ViperSlide {
 
     public DcMotor viperTwo() {
         return v2;
+    }
+
+    /*
+    * Claw Functions
+    * */
+    public void customClawPosition(double position) {
+        claw.setPosition(position);
+    }
+
+    public void openClaw() {
+        claw.setPosition(CLAW_OPEN);
+    }
+
+    public void closeClaw() {
+        claw.setPosition(CLAW_CLOSE);
+    }
+
+    // Hinge Positions
+    public void hingePickup() {
+        hinge.setPosition(HINGE_PICKUP);
+    }
+
+    public void hingeBar() {
+        hinge.setPosition(HINGE_BAR);
+    }
+
+    public void hingeBucket() {
+        hinge.setPosition(HINGE_BUCKET);
     }
 }

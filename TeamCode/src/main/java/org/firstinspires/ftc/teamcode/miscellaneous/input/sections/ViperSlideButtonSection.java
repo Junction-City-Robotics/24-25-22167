@@ -13,8 +13,8 @@ public class ViperSlideButtonSection extends TrackedButtonSection {
     public void update(Gamepad g1, Gamepad g2) {
         for (ButtonManager button : buttons) {
             switch (button.getName()) {
-                case "leftStickUp": {
-                    if (g2.left_stick_y < -0.5) {
+                case "dpadUp": {
+                    if (g1.dpad_up) {
                         if (!button.isClicked()) {
                             button.resetTimer();
                         }
@@ -24,8 +24,8 @@ public class ViperSlideButtonSection extends TrackedButtonSection {
                     }
                     break;
                 }
-                case "leftStickDown": {
-                    if (g2.left_stick_y > 0.5) {
+                case "dpadDown": {
+                    if (g1.dpad_down) {
                         if (!button.isClicked()) {
                             button.resetTimer();
                         }
@@ -35,8 +35,8 @@ public class ViperSlideButtonSection extends TrackedButtonSection {
                     }
                     break;
                 }
-                case "leftStickSide": {
-                    if (Math.abs(g2.left_stick_x) > 0.5) {
+                case "dpadSide": {
+                    if (g1.dpad_left || g1.dpad_right) {
                         if (!button.isClicked()) {
                             button.resetTimer();
                         }

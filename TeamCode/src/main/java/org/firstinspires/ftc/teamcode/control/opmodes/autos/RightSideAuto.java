@@ -30,10 +30,9 @@ public class RightSideAuto extends BaseAuto {
 
     @Override
     public void autoContents() {
-        claw.clawClose();
+        claw.close();
 
         vs.setPower(1.0);
-        brush.wristToHover(); // TODO: Adjust for claw instead of brush
 
         drive.followTrajectorySequence(mainTrajectory);
 

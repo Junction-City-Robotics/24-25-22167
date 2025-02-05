@@ -12,8 +12,6 @@ public class Link {
     private final Servo l1; // Left
     private final Servo l2; // Right
 
-    public static final double L1_ADJUSTMENT = -0.15;
-
     /*
      * Static set positions for servos
      */
@@ -27,19 +25,18 @@ public class Link {
         l1.setDirection(Servo.Direction.REVERSE);
     }
 
-    // TODO: Fix the + L1_ADJUSTMENT when both the links are the same start / are balanced
     public void startPosition() {
-        l1.setPosition(START_POSITION + L1_ADJUSTMENT);
+        l1.setPosition(START_POSITION);
         l2.setPosition(START_POSITION);
     }
 
     public void extendedPosition() {
-        l1.setPosition(FULLY_EXTENDED_POSITION + L1_ADJUSTMENT);
+        l1.setPosition(FULLY_EXTENDED_POSITION);
         l2.setPosition(FULLY_EXTENDED_POSITION);
     }
 
     public void setCustomPosition(double position) {
-        l1.setPosition(position + L1_ADJUSTMENT);
+        l1.setPosition(position);
         l2.setPosition(position);
     }
 }

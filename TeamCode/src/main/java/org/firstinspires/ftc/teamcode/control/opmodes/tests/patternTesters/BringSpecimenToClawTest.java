@@ -29,8 +29,7 @@ public class BringSpecimenToClawTest extends BaseTeleop {
 
         // Prepping other systems
         link.extendedPosition();
-        brush.brushIntake();
-        claw.clawClose();
+        claw.close();
 
         super.afterStart();
     }

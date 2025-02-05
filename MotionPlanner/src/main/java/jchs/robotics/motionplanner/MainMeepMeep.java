@@ -7,6 +7,7 @@ import org.rowlandhall.meepmeep.MeepMeep;
 import org.rowlandhall.meepmeep.core.colorscheme.scheme.ColorSchemeRedDark;
 import org.rowlandhall.meepmeep.roadrunner.DefaultBotBuilder;
 import org.rowlandhall.meepmeep.roadrunner.entity.RoadRunnerBotEntity;
+import org.rowlandhall.meepmeep.roadrunner.trajectorysequence.TrajectorySequence;
 
 public class MainMeepMeep {
     // Overall needed components

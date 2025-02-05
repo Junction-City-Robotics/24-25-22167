@@ -6,8 +6,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.control.opmodes.Positions;
 
-@TeleOp(name = "T2A Controls", group = "teleops")
-public class T2AControls extends BaseTeleop {
+@TeleOp(name = "T3 Controls", group = "teleops")
+public class T3Controls extends BaseTeleop {
     @Override
     public void beforeStart() {
         vs.completeSetup();
@@ -20,7 +20,6 @@ public class T2AControls extends BaseTeleop {
     @Override
     public void afterStart() {
         vs.afterStart(1.0);
-        brush.wristToHover();
 
         super.afterStart();
     }
@@ -59,7 +58,9 @@ public class T2AControls extends BaseTeleop {
                         )
                 );
                 break;
-            } case "dpadUp": case "dpadDown": case "dpadLeft": case "dpadRight": {
+            }
+            // Resetting Position if needed
+            case "rightTrigger": case "leftTrigger": {
                 drive.setPoseEstimate(Positions.ORIGIN);
             } default: {
                 drive.setWeightedDrivePower(
@@ -68,58 +69,20 @@ public class T2AControls extends BaseTeleop {
                         )
                 );
             }
-            // Basic Turning
-//            case "rightShoulder": {
-//                drive.turn(Math.toRadians(-90));
-//                break;
-//            } case "leftShoulder": {
-//                drive.turn(Math.toRadians(90));
-//                break;
-//            } case "rightBumper": {
-//                drive.turn(Math.toRadians(-30));
-//                break;
-//            } case "leftBumper": {
-//                drive.turn(Math.toRadians(30));
-//                break;
-//            }
-            // Simple Dpad Controls
-//            case "dpadUp": {
-//                drive.setWeightedDrivePower(
-//                        new Pose2d(
-//                                1.0,
-//                                0.0,
-//                                poseEstimate.getHeading()
-//                        )
-//                );
-//                break;
-//            } case "dpadDown": {
-//                drive.setWeightedDrivePower(
-//                        new Pose2d(
-//                                -1.0,
-//                                0.0,
-//                                poseEstimate.getHeading()
-//                        )
-//                );
-//                break;
-//            } case "dpadLeft": {
-//                drive.setWeightedDrivePower(
-//                        new Pose2d(
-//                                0.0,
-//                                1.0,
-//                                poseEstimate.getHeading()
-//                        )
-//                );
-//                break;
-//            } case "dpadRight": {
-//                drive.setWeightedDrivePower(
-//                        new Pose2d(
-//                                0.0,
-//                                -1.0,
-//                                poseEstimate.getHeading()
-//                        )
-//                );
-//                break;
-//            }
+        }
+
+        // Viper Slide
+        String vsButton = controls.getMostRecentButtonInSection("viperSlide");
+        switch (vsButton) {
+            case "dpadDown":
+                vs.down();
+                break;
+            case "dpadUp":
+                vs.up();
+                break;
+            case "dpadSide":
+                vs.halfway();
+                break;
         }
     }
 
@@ -130,32 +93,17 @@ public class T2AControls extends BaseTeleop {
             // Hinge
             case "a":
             case "rightBumper":
-                claw.hingeDown();
+                vs.hingePickup();
                 break;
-            case "y":
-            case "leftBumper":
-                claw.hingeDeposit();
+            case "y": case "leftBumper":
+                vs.hingeBucket();
                 break;
             // Claw
             case "b":
-                claw.clawClose();
+                claw.close();
                 break;
             case "x":
-                claw.clawOpen();
-                break;
-        }
-
-        // Viper Slide
-        String vsButton = controls.getMostRecentButtonInSection("viperSlide");
-        switch (vsButton) {
-            case "leftStickDown":
-                vs.down();
-                break;
-            case "leftStickUp":
-                vs.up();
-                break;
-            case "leftStickSide":
-                vs.halfway();
+                claw.open();
                 break;
         }
 
@@ -175,24 +123,24 @@ public class T2AControls extends BaseTeleop {
         switch (brushButton) {
             // Brush
             case "rightTrigger":
-                brush.brushIntake();
+                // TODO: USED TO BE BRUSH STUFF
                 break;
             case "leftTrigger":
-                brush.brushOutput();
+                // TODO: USED TO BE BRUSH STUFF
                 break;
             // Wrist
             case "dpadUp":
-                brush.wristToFloor();
+                // TODO: USED TO BE BRUSH STUFF
                 break;
             case "dpadDown":
-                brush.wristToDeposit();
+                // TODO: USED TO BE BRUSH STUFF
                 break;
             case "dpadSide":
-                brush.wristToHover();
+                // TODO: USED TO BE BRUSH STUFF
                 break;
             // Stopping Wrist
             default:
-                brush.brushStop();
+                // TODO: USED TO BE BRUSH STUFF
                 break;
         }
     }

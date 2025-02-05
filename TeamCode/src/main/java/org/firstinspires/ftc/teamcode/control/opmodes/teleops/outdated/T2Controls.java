@@ -4,8 +4,8 @@
 //import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 //
 //import org.firstinspires.ftc.teamcode.control.systems.drive.BasicDrive;
-//import org.firstinspires.ftc.teamcode.control.systems.inputOutput.Brush;
-//import org.firstinspires.ftc.teamcode.control.systems.inputOutput.Claw;
+//import org.firstinspires.ftc.teamcode.control.systems.inputOutput.outdated.Brush;
+//import org.firstinspires.ftc.teamcode.control.systems.inputOutput.outdated.Claw;
 //import org.firstinspires.ftc.teamcode.control.systems.inputOutput.Link;
 //import org.firstinspires.ftc.teamcode.control.systems.inputOutput.ViperSlide;
 //import org.firstinspires.ftc.teamcode.miscellaneous.input.ControllerActionManager;
