@@ -1,10 +1,14 @@
-package org.firstinspires.ftc.teamcode.control.systems.inputOutput;
+package org.firstinspires.ftc.teamcode.control.systems;
 
+import androidx.annotation.ColorRes;
+
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+@Config
 public class ViperSlide {
     // Motor Classes
     private final DcMotor v1;
@@ -15,20 +19,23 @@ public class ViperSlide {
 
     private int offset = 0;
 
-    // Needed Positions
-    public final static int TOP_POSITION = 5250;
-    public final static int HALF_POSITION = 3000;
-    public final static int HANG_POSITION = 500;
-    public final static int BOTTOM_POSITION = 10;
+    /**
+     * Config Variables
+     */
+    // Viperslide positions
+    public static int TOP_POSITION = 5250;
+    public static int HALF_POSITION = 3000;
+    public static int HANG_POSITION = 500;
+    public static int BOTTOM_POSITION = 10;
 
     // Claw Positions
-    public final static double CLAW_OPEN = 0.15;
-    public final static double CLAW_CLOSE = 0.0;
+    public static double CLAW_OPEN = 0.15;
+    public static double CLAW_CLOSE = 0.0;
 
     // Hinge Positions
-    private final static double HINGE_PICKUP = 1.0;
-    private final static double HINGE_BUCKET = 0.2;
-    private final static double HINGE_FORCE_HANG = 0.0;
+    public static double HINGE_PICKUP = 1.0;
+    public static double HINGE_BUCKET = 0.2;
+    public static double HINGE_FORCE_HANG = 0.0;
 
     // Directions
     private final static DcMotorSimple.Direction[] FORWARD_DIRECTIONS = {

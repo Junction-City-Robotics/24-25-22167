@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.control.systems.inputOutput;
+package org.firstinspires.ftc.teamcode.control.systems;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -13,10 +13,10 @@ public class Link {
     private final Servo l2; // Right
 
     /*
-     * Static set positions for servos
+     * Static set positions for servos (Config Variables)
      */
-    public static final double START_POSITION = 0.1;
-    public static final double FULLY_EXTENDED_POSITION = 0.365;
+    public static double START_POSITION = 0.1;
+    public static double FULLY_EXTENDED_POSITION = 0.365;
 
     public Link(String l1Name, String l2Name, HardwareMap hMap) {
         l1 = hMap.get(Servo.class, l1Name);

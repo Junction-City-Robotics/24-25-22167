@@ -3,7 +3,7 @@
 //import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 //import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 //
-//import org.firstinspires.ftc.teamcode.control.systems.inputOutput.outdated.Brush;
+//import org.firstinspires.ftc.teamcode.control.systems.outdated.outdated.Brush;
 //
 //@TeleOp(name = "Brush Tuner", group = "tuners")
 //public class BrushTuner extends LinearOpMode {

@@ -4,9 +4,9 @@ import com.acmerobotics.roadrunner.drive.MecanumDrive;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.control.systems.inputOutput.Claw;
-import org.firstinspires.ftc.teamcode.control.systems.inputOutput.Link;
-import org.firstinspires.ftc.teamcode.control.systems.inputOutput.ViperSlide;
+import org.firstinspires.ftc.teamcode.control.systems.Claw;
+import org.firstinspires.ftc.teamcode.control.systems.Link;
+import org.firstinspires.ftc.teamcode.control.systems.ViperSlide;
 import org.firstinspires.ftc.teamcode.miscellaneous.SessionStorage;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
 

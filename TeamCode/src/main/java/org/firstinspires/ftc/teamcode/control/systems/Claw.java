@@ -1,31 +1,36 @@
-package org.firstinspires.ftc.teamcode.control.systems.inputOutput;
+package org.firstinspires.ftc.teamcode.control.systems;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+@Config
 public class Claw {
     private final Servo finger;
     private final Servo wrist;
     private final Servo arm;
     private final Servo elbow;
 
+    /**
+     * Config Variables
+     */
     // Claw Positions
-    private static final double CLOSE = 1.0;
-    private static final double OPEN = 0.38;
+    public static double CLOSE = 1.0;
+    public static double OPEN = 0.38;
 
     // Wrist Positions
-    private static final double WRIST_DEPOSIT = 0.35;
-    private static final double WRIST_VERTICAL = 0.65;
-    private static final double WRIST_HORIZONTAL = 0.35;
+    public static double WRIST_DEPOSIT = 0.35;
+    public static double WRIST_VERTICAL = 0.65;
+    public static double WRIST_HORIZONTAL = 0.35;
 
     // Elbow Positions
-    private static final double ELBOW_DEPOSIT = 0.175;
-    private static final double ELBOW_UP = 0.35;
-    private static final double ELBOW_DOWN = 0.8;
+    public static double ELBOW_DEPOSIT = 0.175;
+    public static double ELBOW_UP = 0.35;
+    public static double ELBOW_DOWN = 0.8;
 
     // Arm Positions
-    private static final double ARM_DEPOSIT = 0.425;
-    private static final double ARM_PICKUP = 0.15;
+    public static double ARM_DEPOSIT = 0.425;
+    public static double ARM_PICKUP = 0.15;
 
     public Claw(String finger, String wrist, String elbow, String arm, HardwareMap hMap) {
         this.finger = hMap.get(Servo.class, finger);

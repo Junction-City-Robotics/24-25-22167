@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.control.opmodes.tests.tuners;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.control.systems.inputOutput.ViperSlide;
+import org.firstinspires.ftc.teamcode.control.systems.ViperSlide;
 
 @TeleOp(name = "Viper Slide Tuner", group = "tuners")
 public class ViperSlideTuner extends LinearOpMode {

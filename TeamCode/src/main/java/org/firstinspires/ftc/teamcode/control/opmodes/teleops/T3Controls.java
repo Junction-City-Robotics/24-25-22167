@@ -5,8 +5,7 @@ import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.control.opmodes.Positions;
-import org.firstinspires.ftc.teamcode.control.systems.inputOutput.ViperSlide;
-import org.firstinspires.ftc.teamcode.miscellaneous.SessionStorage;
+import org.firstinspires.ftc.teamcode.control.systems.ViperSlide;
 
 @TeleOp(name = "T3 Controls", group = "teleops")
 public class T3Controls extends BaseTeleop {

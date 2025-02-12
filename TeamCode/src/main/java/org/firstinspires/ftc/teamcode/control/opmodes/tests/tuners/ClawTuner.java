@@ -3,8 +3,7 @@ package org.firstinspires.ftc.teamcode.control.opmodes.tests.tuners;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.control.systems.inputOutput.Claw;
-import org.firstinspires.ftc.teamcode.control.systems.inputOutput.Link;
+import org.firstinspires.ftc.teamcode.control.systems.Claw;
 
 @TeleOp(name = "Claw Tuner", group = "tuners")
 public class ClawTuner extends LinearOpMode {
