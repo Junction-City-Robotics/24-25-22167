@@ -13,30 +13,63 @@ public class ViperSlideButtonSection extends TrackedButtonSection {
     public void update(Gamepad g1, Gamepad g2) {
         for (ButtonManager button : buttons) {
             switch (button.getName()) {
+                case "y": {
+                    if (g1.y) {
+                        if (!button.isClicked()) {
+                            button.resetTimer();
+                        }
+                        button.setClicked(true);
+                    } else {
+                        button.setClicked(false);
+                    }
+                    break;
+                }
+                case "a": {
+                    if (g1.a) {
+                        if (!button.isClicked()) {
+                            button.resetTimer();
+                        }
+                        button.setClicked(true);
+                    } else {
+                        button.setClicked(false);
+                    }
+                    break;
+                }
+                case "x": {
+                    if (g1.x) {
+                        if (!button.isClicked()) {
+                            button.resetTimer();
+                        }
+                        button.setClicked(true);
+                    } else {
+                        button.setClicked(false);
+                    }
+                    break;
+                }
+                case "b": {
+                    if (g1.b) {
+                        if (!button.isClicked()) {
+                            button.resetTimer();
+                        }
+                        button.setClicked(true);
+                    } else {
+                        button.setClicked(false);
+                    }
+                    break;
+                }
+                case "rightStickButton": {
+                    if (g1.right_stick_button) {
+                        if (!button.isClicked()) {
+                            button.resetTimer();
+                        }
+                        button.setClicked(true);
+                    } else {
+                        button.setClicked(false);
+                    }
+                    break;
+                }
                 case "dpadUp": {
                     if (g1.dpad_up) {
-                        if (!button.isClicked()) {
-                            button.resetTimer();
-                        }
-                        button.setClicked(true);
-                    } else {
-                        button.setClicked(false);
-                    }
-                    break;
-                }
-                case "dpadDown": {
-                    if (g1.dpad_down) {
-                        if (!button.isClicked()) {
-                            button.resetTimer();
-                        }
-                        button.setClicked(true);
-                    } else {
-                        button.setClicked(false);
-                    }
-                    break;
-                }
-                case "dpadSide": {
-                    if (g1.dpad_left || g1.dpad_right) {
                         if (!button.isClicked()) {
                             button.resetTimer();
                         }

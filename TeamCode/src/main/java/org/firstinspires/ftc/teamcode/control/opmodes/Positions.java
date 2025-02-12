@@ -12,7 +12,7 @@ public class Positions {
 
     // Constant Destinations
     public static final Pose2d PARKING = new Pose2d(6, -66, Math.toRadians(90));
-    public static final Pose2d BUCKETS = new Pose2d(18, 60, Math.toRadians(-  45));
+    public static final Pose2d BUCKETS = new Pose2d(18, 54, Math.toRadians(-  45));
 
     // Pixel Locations
     public static final Pose2d RIGHT_COLORED_PIXELS = new Pose2d(44, -60, Math.toRadians(90));
@@ -23,7 +23,7 @@ public class Positions {
     public static final Pose2d FRONT_CENTER = new Pose2d(44, 0, Math.toRadians(90));
     public static final Pose2d BACK_CENTER = new Pose2d(108, 0, Math.toRadians(180));
 
-    public static final Pose2d LEFT_NEAR = new Pose2d(54, 24);
+    public static final Pose2d LEFT_NEAR = new Pose2d(47, 24);
     public static final Pose2d LEFT_FAR = new Pose2d(66, 24);
 
     public static final Pose2d RIGHT_NEAR = new Pose2d(54, -24);

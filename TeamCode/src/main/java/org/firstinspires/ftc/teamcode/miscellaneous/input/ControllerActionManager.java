@@ -17,35 +17,50 @@ public class ControllerActionManager {
 
     // Buttons
     private static final String[] DRIVE_TRACKED_BUTTONS = new String[] {
-            "leftStick",
-            "rightStick",
-
-            "rightTrigger",
-            "leftTrigger",
-            "rightBumper",
-            "leftBumper"
+            "leftStick", // Move
+            "rightStick", // Turn
+            
+            "leftStickButton"
     };
 
     private static final String[] VIPER_SLIDE_BUTTONS = new String[] {
+            "a",
+            "b",
+            "y",
+            "x",
+
             "dpadUp",
-            "dpadDown",
-            "dpadSide"
+
+            "rightStickButton"
     };
 
 
     private static final String[] CLAW_TRACKED_BUTTONS = new String[] {
+            "y",
             "a",
+
+            "dpadUp",
+            "dpadDown",
+
+            "dpadLeft",
+            "dpadRight",
+
             "x",
             "b",
-            "y",
 
             "leftBumper",
-            "rightBumper"
+            "rightBumper",
+
+            "rightTrigger",
+            "leftTrigger",
+
+            "leftStick",
+            "rightStick",
     };
 
     private static final String[] LINK_TRACKED_BUTTONS = new String[] {
-            "rightStickUp",
-            "rightStickDown"
+            "rightTrigger", // Link Out
+            "leftTrigger", // Link In
     };
 
     // Sections

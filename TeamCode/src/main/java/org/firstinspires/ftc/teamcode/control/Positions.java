@@ -28,10 +28,10 @@ public class Positions {
 
     // Constant Destinations
     public static final Pose2d PARKING = new Pose2d(-60, -38, Math.toRadians(0));
-    public static final Pose2d BUCKETS = new Pose2d(-55, 55, Math.toRadians(-45));
+    public static final Pose2d BUCKETS = new Pose2d(-48.5, 54, Math.toRadians(-45));
 
     // Center Feature Locations
-    public static final Pose2d FRONT_CENTER = new Pose2d(-32, -2, Math.toRadians(90));
+    public static final Pose2d FRONT_CENTER = new Pose2d(-36, -2, Math.toRadians(90));
     public static final Pose2d BACK_CENTER = new Pose2d(0, -108, Math.toRadians(90)); // TODO: Deal with warning and translate to correct Pose
 
     public static final Pose2d LEFT_NEAR = new Pose2d(-9, 25, Math.toRadians(90));

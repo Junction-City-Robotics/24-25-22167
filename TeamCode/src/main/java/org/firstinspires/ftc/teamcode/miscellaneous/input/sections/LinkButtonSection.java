@@ -13,8 +13,8 @@ public class LinkButtonSection extends TrackedButtonSection {
     public void update(Gamepad g1, Gamepad g2) {
         for (ButtonManager button : buttons) {
             switch (button.getName()) {
-                case "rightStickUp": {
-                    if (g2.right_stick_y < -0.5) {
+                case "rightTrigger": {
+                    if (g1.right_trigger > 0.2) {
                         if (!button.isClicked()) {
                             button.resetTimer();
                         }
@@ -24,8 +24,8 @@ public class LinkButtonSection extends TrackedButtonSection {
                     }
                     break;
                 }
-                case "rightStickDown": {
-                    if (g2.right_stick_y > 0.5) {
+                case "leftTrigger": {
+                    if (g1.left_trigger > 0.2) {
                         if (!button.isClicked()) {
                             button.resetTimer();
                         }

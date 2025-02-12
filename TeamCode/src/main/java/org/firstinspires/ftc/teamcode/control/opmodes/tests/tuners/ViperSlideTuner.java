@@ -11,6 +11,8 @@ public class ViperSlideTuner extends LinearOpMode {
 
     private double clawPosition = 0.0;
 
+    private double hingePosition = 0.0;
+
     private boolean isClicked = false;
 
     @Override
@@ -83,12 +85,25 @@ public class ViperSlideTuner extends LinearOpMode {
                     isClicked = true;
                     vs.customClawPosition(clawPosition);
                 }
+            } else if (gamepad1.right_bumper) {
+                if (!isClicked) {
+                    hingePosition += 0.05;
+                    isClicked = true;
+                }
+            } else if (gamepad1.left_bumper) {
+                if (!isClicked) {
+                    hingePosition -= 0.05;
+                    isClicked = true;
+                }
             } else {
                 isClicked = false;
             }
 
+            vs.customHingePosition(hingePosition);
+
             // Output
             telemetry.addData("Claw Position", clawPosition);
+            telemetry.addData("Hinge Position", hingePosition);
             telemetry.addData("Target Position", vs.viperOne().getTargetPosition());
             telemetry.addData("Current Position", vs.viperOne().getCurrentPosition());
             telemetry.addData("Power", vs.viperTwo().getPower());

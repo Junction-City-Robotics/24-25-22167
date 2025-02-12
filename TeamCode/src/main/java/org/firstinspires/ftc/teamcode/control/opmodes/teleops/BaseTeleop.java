@@ -8,6 +8,10 @@ import org.firstinspires.ftc.teamcode.control.systems.inputOutput.ViperSlide;
 import org.firstinspires.ftc.teamcode.miscellaneous.input.ControllerActionManager;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 public class BaseTeleop extends LinearOpMode {
     // Player Input
     protected final ControllerActionManager controls = new ControllerActionManager(gamepad1, gamepad2);
@@ -22,6 +26,9 @@ public class BaseTeleop extends LinearOpMode {
 
     // Loop or single run
     private final boolean runOpModeLoop;
+
+    // Scheduled Tasks Object
+     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     // Constructors
     public BaseTeleop(boolean runOpModeLoop) {
@@ -71,5 +78,9 @@ public class BaseTeleop extends LinearOpMode {
 
     public void teleopContents() {
         telemetry.update();
+    }
+
+    protected void timeoutRunnable(double seconds, Runnable task) {
+        scheduler.schedule(task, (long) seconds, TimeUnit.SECONDS);
     }
 }

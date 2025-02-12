@@ -5,14 +5,18 @@ import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.control.opmodes.Positions;
+import org.firstinspires.ftc.teamcode.control.systems.inputOutput.ViperSlide;
+import org.firstinspires.ftc.teamcode.miscellaneous.SessionStorage;
 
 @TeleOp(name = "T3 Controls", group = "teleops")
 public class T3Controls extends BaseTeleop {
+    private boolean isOpen = true;
+    private boolean isPressingB = false;
+
     @Override
     public void beforeStart() {
-        vs.completeSetup();
+        vs.completeSetup(ViperSlide.TOP_POSITION);
         vs.setPower(0.0);
-
 
         super.beforeStart();
     }
@@ -20,6 +24,9 @@ public class T3Controls extends BaseTeleop {
     @Override
     public void afterStart() {
         vs.afterStart(1.0);
+
+        claw.open();
+        vs.hingePickup();
 
         super.afterStart();
     }
@@ -33,11 +40,16 @@ public class T3Controls extends BaseTeleop {
         driveControls();
         systemsControls();
 
+        // Updates
         telemetry.addData("Current Position", drive.getPoseEstimate());
+        telemetry.addData("Viperslide Position (Offset Included)", vs.getPosition());
+        telemetry.addData("Viperslide Position (Without Offset)", vs.getPosition() + vs.getOffset());
+        telemetry.addData("OFfset", vs.getOffset());
 
         super.teleopContents();
     }
 
+    // First driver controls
     private void driveControls() {
         String driveButton = controls.getMostRecentButtonInSection("drive");
         Pose2d poseEstimate = drive.getPoseEstimate();
@@ -60,7 +72,7 @@ public class T3Controls extends BaseTeleop {
                 break;
             }
             // Resetting Position if needed
-            case "rightTrigger": case "leftTrigger": {
+            case "leftStickButton": {
                 drive.setPoseEstimate(Positions.ORIGIN);
             } default: {
                 drive.setWeightedDrivePower(
@@ -69,78 +81,157 @@ public class T3Controls extends BaseTeleop {
                         )
                 );
             }
-        }
 
-        // Viper Slide
-        String vsButton = controls.getMostRecentButtonInSection("viperSlide");
-        switch (vsButton) {
-            case "dpadDown":
-                vs.down();
-                break;
-            case "dpadUp":
-                vs.up();
-                break;
-            case "dpadSide":
-                vs.halfway();
-                break;
+            // Link
+            String linkButton = controls.getMostRecentButtonInSection("link");
+            switch (linkButton) {
+                case "rightTrigger":
+                    link.extendedPosition();
+                    break;
+                case "leftTrigger":
+                    link.startPosition();
+                    break;
+            }
+        
+            // Viper Slide
+            String vsButton = controls.getMostRecentButtonInSection("viperSlide");
+            switch (vsButton) {
+                case "a":
+                    vs.down();
+                    break;
+                case "b":
+                    vs.hang();
+                    break;
+                case "y":
+                    vs.up();
+                    break;
+                case "x":
+                    vs.halfway();
+                    break;
+                case "rightStickButton":
+                    vs.setOffset(0);
+                    break;
+
+                case "dpadUp": // Hanging specimen macro
+                    vs.hang();
+
+                    timeoutRunnable(1.0, () -> vs.hingeForceHang());
+                    timeoutRunnable(1.75, () -> vs.openClaw());
+                    timeoutRunnable(2.15, () -> vs.hingePickup());
+                    timeoutRunnable(2.55, () -> vs.down());
+                    break;
+            }
         }
     }
 
-    protected void systemsControls() {
+    // Second driver controls
+    private void systemsControls() {
         // Claw & Hinge deposit system
         String clawButton = controls.getMostRecentButtonInSection("claw");
         switch (clawButton) {
-            // Hinge
-            case "a":
-            case "rightBumper":
-                vs.hingePickup();
-                break;
-            case "y": case "leftBumper":
-                vs.hingeBucket();
-                break;
-            // Claw
-            case "b":
-                claw.close();
-                break;
-            case "x":
-                claw.open();
-                break;
-        }
-
-        // Link
-        String linkButton = controls.getMostRecentButtonInSection("link");
-        switch (linkButton) {
-            case "rightStickUp":
-                link.extendedPosition();
-                break;
-            case "rightStickDown":
-                link.startPosition();
-                break;
-        }
-
-        // Brush & Wrist intake controls
-        String brushButton = controls.getMostRecentButtonInSection("brush");
-        switch (brushButton) {
-            // Brush
-            case "rightTrigger":
-                // TODO: USED TO BE BRUSH STUFF
-                break;
-            case "leftTrigger":
-                // TODO: USED TO BE BRUSH STUFF
-                break;
-            // Wrist
+            // Viperslide Claw
             case "dpadUp":
-                // TODO: USED TO BE BRUSH STUFF
+                vs.openClaw();
                 break;
             case "dpadDown":
-                // TODO: USED TO BE BRUSH STUFF
+                vs.closeClaw();
                 break;
-            case "dpadSide":
-                // TODO: USED TO BE BRUSH STUFF
+            // Front Claw
+            case "a":
+                claw.close();
+                isOpen = false;
                 break;
-            // Stopping Wrist
+            case "y":
+                claw.open();
+                isOpen = true;
+                break;
+
+            case "b":
+                // Checking to see if already pressing B
+                if (!isPressingB) {
+                    // If claw is open, close it. If it's closed, open it.
+                    if (isOpen) {
+                        claw.close();
+                        isOpen = false;
+                    } else {
+                        claw.open();
+                        isOpen = true;
+                    }
+                }
+                isPressingB = true;
+                break;
+
+            // Hinge
+            case "dpadLeft":
+                vs.hingeBucket();
+                break;
+            case "dpadRight":
+                vs.hingePickup();
+                break;
+
+            case "x":
+                vs.hingeBucket();
+
+                timeoutRunnable(1.5, () -> vs.openClaw());
+
+                timeoutRunnable(2.2, () -> vs.hingePickup());
+                break;
+
+            // Presets
+            // Crane / Hang (Setting everything to half so it can get out the way)
+            case "rightBumper":
+                claw.setCustomWristPosition(0.3);
+                claw.setCustomElbowPosition(0.85);
+                claw.setCustomArmPosition(0.25);
+                break;
+
+            // Grabbing Pixel into the viperslide claw
+            case "leftBumper":
+                vs.closeClaw();
+
+                 timeoutRunnable(1.2, () -> claw.open());
+
+                 timeoutRunnable(1.6, () -> {
+                     claw.setCustomWristPosition(0.3);
+                     claw.setCustomElbowPosition(0.85);
+                     claw.setCustomArmPosition(0.25);
+                 });
+
+                break;
+
+            // Dropdown to pickup
+            case "rightTrigger":
+                claw.open();
+                claw.wristDeposit();
+                claw.elbowDown();
+                claw.armPickup();
+
+                isOpen = true;
+
+                break;
+
+            // Full deposit 
+            case "leftTrigger":
+                // Setting arm into deposit position
+                claw.wristDeposit();
+                claw.elbowDeposit();
+                claw.armDeposit();
+
+                // Getting viperslide claw to pickup
+                vs.hingePickup();
+                vs.openClaw();
+                break;
+
+            // Adjusting Wrist
+            case "leftStick":
+                claw.wristRotatedPercent(gamepad2.left_stick_x);
+                break;
+            case "rightStick":
+                claw.elbowPositionPercent(1.0 - Math.abs(gamepad2.right_stick_y));
+                break;
             default:
-                // TODO: USED TO BE BRUSH STUFF
+                claw.wristDeposit();
+                isPressingB = false;
                 break;
         }
     }

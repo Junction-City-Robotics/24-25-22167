@@ -15,8 +15,8 @@ public class Link {
     /*
      * Static set positions for servos
      */
-    public static final double START_POSITION = 0.65;
-    public static final double FULLY_EXTENDED_POSITION = 0.9;
+    public static final double START_POSITION = 0.1;
+    public static final double FULLY_EXTENDED_POSITION = 0.365;
 
     public Link(String l1Name, String l2Name, HardwareMap hMap) {
         l1 = hMap.get(Servo.class, l1Name);

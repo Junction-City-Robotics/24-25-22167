@@ -8,9 +8,9 @@ import org.firstinspires.ftc.teamcode.control.systems.inputOutput.Link;
 
 @TeleOp(name = "Claw Tuner", group = "tuners")
 public class ClawTuner extends LinearOpMode {
-    private double fingerPosition = 0.38;
-    private double wristPosition = 0.68;
-    private double elbowPosition = 0.45;
+    private double fingerPosition = 1.0;
+    private double wristPosition = 0.35;
+    private double elbowPosition = 0.65;
     private double armPosition = 0.35;
 
     private boolean isClicked = false;

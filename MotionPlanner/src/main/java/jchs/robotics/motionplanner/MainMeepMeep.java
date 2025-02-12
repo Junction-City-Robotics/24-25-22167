@@ -24,7 +24,6 @@ public class MainMeepMeep {
     private final static double VELOCITY = 46.81651638;
     private final static double ACCELERATION = 46.81651638;
 
-
     static {
         mm = new MeepMeep(600)
                 .setBackground(MeepMeep.Background.FIELD_INTOTHEDEEP_JUICE_BLACK)
@@ -52,26 +51,37 @@ public class MainMeepMeep {
         Pose2d startPose = Positions.RIGHT_START;
 
         RoadRunnerBotEntity bot = botBuilder.followTrajectorySequence(drive -> drive.trajectorySequenceBuilder(startPose)
-                // Dropping off pre loaded pixel
+                // Drop off first pixel
+                // Initial Moving to bucket to drop off the first pixel
                 .setReversed(true)
-                .splineToConstantHeading(Positions.FRONT_CENTER.vec().plus(new Vector2d(10, 0)), Math.toRadians(180))
+                .splineToConstantHeading(Positions.FRONT_CENTER.vec().plus(new Vector2d(0, -10)), Math.toRadians(180))
                 .setReversed(false)
-                .waitSeconds(0.5) // TODO: Hang loaded pixel
+                .waitSeconds(2.5)
 
-                // Getting 1st pixel to the human player area
-                .splineTo(Positions.PARKING.vec().plus(new Vector2d(10, 24)), Math.toRadians(90))
-                .back(15)
+                // Pixel 1
+                .splineTo(new Pose2d(-33, 48).vec(), Math.toRadians(0))// TODO: Pick up pixel one
+
+                .waitSeconds(0.75)
+                .splineToLinearHeading(Positions.BUCKETS, Positions.BUCKETS.getHeading()) // TODO: Deposit pixel one
+
+                // Pixel 2
+                .splineToLinearHeading(new Pose2d(-38, 58, Math.toRadians(0)), Math.toRadians(0))
                 .waitSeconds(0.5)
+                .splineToLinearHeading(Positions.BUCKETS, Positions.BUCKETS.getHeading()) // TODO: Deposit pixel two
 
-                // Getting 2nd pixel to the human player area and picking up 1st specimen
-                .splineToLinearHeading(Positions.PARKING.plus(new Pose2d(20, 24, 0)), Math.toRadians(90))
+                // Pixel 3
+                .splineToLinearHeading(new Pose2d(-28, 62, Math.toRadians(90)), Math.toRadians(90))
                 .waitSeconds(0.5)
+                .setReversed(true)
+                .splineToLinearHeading(Positions.BUCKETS, Positions.BUCKETS.getHeading() * -1)
+                .setReversed(false) // TODO: Put down pixel three
 
-                // Getting 3rd pixel to the human player area and picking up 2nd specimen
-
-                // Getting 3rd specimen hung
-
-                // Parking
+                // Parking at 1st level ascent
+                .splineToLinearHeading(Positions.BUCKETS.plus(new Pose2d(20, 4, Math.toRadians(180 + 45))), Math.toRadians(90))
+                .setReversed(true)
+                .splineTo(Positions.LEFT_NEAR.vec(), Math.toRadians(-90))
+                .setReversed(false)
+                // TODO: Touch lower bar
 
                 // End
                 .waitSeconds(0.75)

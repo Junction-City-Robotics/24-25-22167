@@ -10,22 +10,22 @@ public class Claw {
     private final Servo elbow;
 
     // Claw Positions
-    private static final double CLOSE = 1.0; // TODO: Get actual close position
-    private static final double OPEN = 0.38; // TODO: Get actual open position
+    private static final double CLOSE = 1.0;
+    private static final double OPEN = 0.38;
 
     // Wrist Positions
-    private static final double WRIST_DEPOSIT = 1.0;
-    private static final double WRIST_VERTICAL = 0.45;
-    private static final double WRIST_HORIZONTAL = 0.68;
+    private static final double WRIST_DEPOSIT = 0.35;
+    private static final double WRIST_VERTICAL = 0.65;
+    private static final double WRIST_HORIZONTAL = 0.35;
 
     // Elbow Positions
-    private static final double ELBOW_DEPOSIT = 0.45;
+    private static final double ELBOW_DEPOSIT = 0.175;
     private static final double ELBOW_UP = 0.35;
-    private static final double ELBOW_DOWN = 1.0;
+    private static final double ELBOW_DOWN = 0.8;
 
     // Arm Positions
-    private static final double ARM_DEPOSIT = 0.35;
-    private static final double ARM_PICKUP = 0.18;
+    private static final double ARM_DEPOSIT = 0.425;
+    private static final double ARM_PICKUP = 0.15;
 
     public Claw(String finger, String wrist, String elbow, String arm, HardwareMap hMap) {
         this.finger = hMap.get(Servo.class, finger);
@@ -56,6 +56,11 @@ public class Claw {
         wrist.setPosition(WRIST_VERTICAL);
     }
 
+    public void wristRotatedPercent(double percent) {
+        double position = WRIST_DEPOSIT + ((WRIST_VERTICAL - WRIST_HORIZONTAL) * percent);
+        wrist.setPosition(position);
+    }
+
     // Elbow
     public void elbowDeposit() {
         elbow.setPosition(ELBOW_DEPOSIT);
@@ -69,6 +74,11 @@ public class Claw {
         elbow.setPosition(ELBOW_DOWN);
     }
 
+    public void elbowPositionPercent(double percent) {
+        double position = ((ELBOW_DOWN - ELBOW_UP) * percent) + ELBOW_UP;
+        elbow.setPosition(position);
+    }
+
     // Arm
     public void armDeposit() {
         arm.setPosition(ARM_DEPOSIT);
@@ -76,6 +86,11 @@ public class Claw {
 
     public void armPickup() {
         arm.setPosition(ARM_PICKUP);
+    }
+
+    public void armPositionPercent(double percent) {
+        double position = ((ARM_DEPOSIT - ARM_PICKUP) * percent) + ARM_PICKUP;
+        arm.setPosition(position);
     }
 
     // Custom Position Functions

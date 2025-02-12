@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.control.opmodes.autos;
 
+import com.acmerobotics.roadrunner.drive.MecanumDrive;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -8,6 +9,10 @@ import org.firstinspires.ftc.teamcode.control.systems.inputOutput.Link;
 import org.firstinspires.ftc.teamcode.control.systems.inputOutput.ViperSlide;
 import org.firstinspires.ftc.teamcode.miscellaneous.SessionStorage;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class BaseAuto extends LinearOpMode {
     // Timer
@@ -20,6 +25,8 @@ public class BaseAuto extends LinearOpMode {
 
     // RR Drive
     protected SampleMecanumDrive drive;
+
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     private void initSystems() {
         // External IO Systems
@@ -55,5 +62,18 @@ public class BaseAuto extends LinearOpMode {
 
     public void autoContents() {
         telemetry.update();
+    }
+
+    protected void timeoutRunnable(double seconds, Runnable task) {
+        scheduler.schedule(task, (long) seconds, TimeUnit.SECONDS);
+    }
+
+    protected void updateSystems(ViperSlide viperSlide, MecanumDrive mecanumDrive) {
+        while (!isStopRequested()) {
+            timeoutRunnable(0.5, () -> {
+                SessionStorage.viperslideStartOffset = viperSlide.getPosition();
+                SessionStorage.teleopEntryPose = mecanumDrive.getPoseEstimate();
+            });
+        }
     }
 }

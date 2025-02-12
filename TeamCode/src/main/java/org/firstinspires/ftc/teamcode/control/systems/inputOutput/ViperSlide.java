@@ -16,8 +16,9 @@ public class ViperSlide {
     private int offset = 0;
 
     // Needed Positions
-    public final static int TOP_POSITION = 5500;
+    public final static int TOP_POSITION = 5250;
     public final static int HALF_POSITION = 3000;
+    public final static int HANG_POSITION = 500;
     public final static int BOTTOM_POSITION = 10;
 
     // Claw Positions
@@ -25,9 +26,9 @@ public class ViperSlide {
     public final static double CLAW_CLOSE = 0.0;
 
     // Hinge Positions
-    private final static double HINGE_PICKUP = 0.09;
-    private final static double HINGE_BAR = 0.5;
-    private final static double HINGE_BUCKET = 0.9;
+    private final static double HINGE_PICKUP = 1.0;
+    private final static double HINGE_BUCKET = 0.2;
+    private final static double HINGE_FORCE_HANG = 0.0;
 
     // Directions
     private final static DcMotorSimple.Direction[] FORWARD_DIRECTIONS = {
@@ -170,6 +171,11 @@ public class ViperSlide {
         v2.setTargetPosition(HALF_POSITION - offset);
     }
 
+    public void hang() {
+        v1.setTargetPosition(HANG_POSITION - offset);
+        v2.setTargetPosition(HANG_POSITION - offset);
+    }
+
     public void customPosition(int position) {
         v1.setTargetPosition(position - offset);
         v2.setTargetPosition(position - offset);
@@ -188,7 +194,7 @@ public class ViperSlide {
     }
 
     public int getPosition() {
-        return (v1.getCurrentPosition() + v2.getCurrentPosition()) / 2;
+        return (v1.getCurrentPosition() - offset + v2.getCurrentPosition() - offset) / 2;
     }
 
     public boolean atDestination() {
@@ -196,6 +202,10 @@ public class ViperSlide {
         int positionMean = getPosition();
 
         return positionMean > targetMean - 10 && positionMean < targetMean - 10;
+    }
+
+    public int getOffset() {
+        return offset;
     }
 
     /*
@@ -229,11 +239,15 @@ public class ViperSlide {
         hinge.setPosition(HINGE_PICKUP);
     }
 
-    public void hingeBar() {
-        hinge.setPosition(HINGE_BAR);
+    public void hingeForceHang() {
+        hinge.setPosition(HINGE_FORCE_HANG);
     }
 
     public void hingeBucket() {
         hinge.setPosition(HINGE_BUCKET);
+    }
+
+    public void customHingePosition (double position) {
+        hinge.setPosition(position);
     }
 }
