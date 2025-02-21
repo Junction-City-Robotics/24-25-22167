@@ -14,7 +14,7 @@ public class T3Controls extends BaseTeleop {
 
     @Override
     public void beforeStart() {
-        vs.completeSetup(ViperSlide.TOP_POSITION);
+        vs.completeSetup();
         vs.setPower(0.0);
 
         super.beforeStart();
@@ -35,6 +35,7 @@ public class T3Controls extends BaseTeleop {
         // Updating variables that need to be monitored
         controls.updateState(gamepad1, gamepad2);
         drive.update();
+        vs.updateOffsetReset();
 
         driveControls();
         systemsControls();
@@ -42,8 +43,10 @@ public class T3Controls extends BaseTeleop {
         // Updates
         telemetry.addData("Current Position", drive.getPoseEstimate());
         telemetry.addData("Viperslide Position (Offset Included)", vs.getPosition());
-        telemetry.addData("Viperslide Position (Without Offset)", vs.getPosition() + vs.getOffset());
-        telemetry.addData("OFfset", vs.getOffset());
+
+        telemetry.addData("Red Seen", sensors.getColors().red);
+        telemetry.addData("Alpha Seen", sensors.getColors().alpha);
+        telemetry.addData("Distance", sensors.getDistance());
 
         super.teleopContents();
     }
@@ -96,23 +99,33 @@ public class T3Controls extends BaseTeleop {
             String vsButton = controls.getMostRecentButtonInSection("viperSlide");
             switch (vsButton) {
                 case "a":
-                    vs.down();
+                    if (!vs.resetting) {
+                        vs.down();
+                    }
                     break;
                 case "b":
-                    vs.hang();
+                    if (!vs.resetting) {
+                        vs.hang();
+                    }
                     break;
                 case "y":
-                    vs.up();
+                    if (!vs.resetting) {
+                        vs.up();
+                    }
                     break;
                 case "x":
-                    vs.halfway();
+                    if (!vs.resetting) {
+                        vs.halfway();
+                    }
                     break;
                 case "rightStickButton":
-                    vs.setOffset(0);
+                    vs.resetOffset();
                     break;
 
                 case "dpadUp": // Hanging specimen macro
-                    vs.hang();
+                    if (!vs.resetting) {
+                        vs.hang();
+                    }
 
                     timeoutRunnable(1.0, () -> vs.hingeForceHang());
                     timeoutRunnable(1.75, () -> vs.openClaw());

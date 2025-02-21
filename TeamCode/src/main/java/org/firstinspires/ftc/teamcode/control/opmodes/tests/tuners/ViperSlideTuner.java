@@ -17,7 +17,7 @@ public class ViperSlideTuner extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        ViperSlide vs = new ViperSlide("viper_1", "viper_2", "viper_claw", "hinge", hardwareMap, false);
+        ViperSlide vs = new ViperSlide("viper_1", "viper_2", "viper_claw", "hinge", "viper_touch", hardwareMap, false);
 
         vs.forwardDirection();
         vs.setPower(0.0);
@@ -30,7 +30,7 @@ public class ViperSlideTuner extends LinearOpMode {
 
         waitForStart();
 
-        vs.setPower(0.1);
+        vs.setPower(0.95);
         vs.down();
 
         while (opModeIsActive()) {
@@ -49,15 +49,13 @@ public class ViperSlideTuner extends LinearOpMode {
                 if (!isClicked) {
                     slidePosition += 500;
                     isClicked = true;
-                    vs.setPower(0.1);
                     vs.runToPosition();
                     vs.customPosition(slidePosition);
                 }
             } else if (gamepad1.y) {
                 if (!isClicked) {
-                    slidePosition += 1000;
+                    slidePosition += 100;
                     isClicked = true;
-                    vs.setPower(0.1);
                     vs.runToPosition();
                     vs.customPosition(slidePosition);
                 }
@@ -69,7 +67,7 @@ public class ViperSlideTuner extends LinearOpMode {
                 }
             } else if (gamepad1.a) {
                 if (!isClicked) {
-                    slidePosition -= 1000;
+                    slidePosition -= 100;
                     isClicked = true;
                     vs.customPosition(slidePosition);
                 }
@@ -104,11 +102,11 @@ public class ViperSlideTuner extends LinearOpMode {
             // Output
             telemetry.addData("Claw Position", clawPosition);
             telemetry.addData("Hinge Position", hingePosition);
-            telemetry.addData("Target Position", vs.viperOne().getTargetPosition());
             telemetry.addData("Current Position", vs.viperOne().getCurrentPosition());
             telemetry.addData("Power", vs.viperTwo().getPower());
-            telemetry.addData("Target", vs.atDestination() + "");
-            telemetry.addData("Position", slidePosition + "");
+            telemetry.addData("At Target", vs.atDestination() + "");
+            telemetry.addData("Target Position", slidePosition + "");
+            telemetry.addData("Touching Bottom", vs.isTouchingBottom() + "");
             telemetry.update();
         }
     }

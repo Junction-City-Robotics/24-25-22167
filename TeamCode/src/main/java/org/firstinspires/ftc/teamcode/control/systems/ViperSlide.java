@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.control.systems;
 
+import static java.lang.Thread.sleep;
+
 import androidx.annotation.ColorRes;
 
 import com.acmerobotics.dashboard.config.Config;
@@ -7,6 +9,11 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Config
 public class ViperSlide {
@@ -17,16 +24,20 @@ public class ViperSlide {
     private final Servo claw;
     private final Servo hinge;
 
+    private final TouchSensor touchSensor;
+    private final ScheduledExecutorService touchSensorScheduler = Executors.newScheduledThreadPool(1);
+
     private int offset = 0;
+    public boolean resetting = false;
 
     /**
      * Config Variables
      */
     // Viperslide positions
-    public static int TOP_POSITION = 5250;
-    public static int HALF_POSITION = 3000;
-    public static int HANG_POSITION = 500;
-    public static int BOTTOM_POSITION = 10;
+    public static int TOP_POSITION = 2300;
+    public static int BOUNCED_HANG_POSITION = 200;
+    public static int HANG_POSITION = 150;
+    public static int BOTTOM_POSITION = -1;
 
     // Claw Positions
     public static double CLAW_OPEN = 0.15;
@@ -43,22 +54,28 @@ public class ViperSlide {
         DcMotorSimple.Direction.REVERSE
     };
 
-    public ViperSlide(String viper_1, String viper_2, String claw, String hinge, HardwareMap hMap) {
+    public ViperSlide(String viper_1, String viper_2, String claw, String hinge, String touchSensor,
+                      HardwareMap hMap) {
         this.v1 = hMap.get(DcMotor.class, viper_1);
         this.v2 = hMap.get(DcMotor.class, viper_2);
 
         this.claw = hMap.get(Servo.class, claw);
         this.hinge = hMap.get(Servo.class, hinge);
+
+        this.touchSensor = hMap.get(TouchSensor.class, touchSensor);
 
         completeSetup();
     }
 
-    public ViperSlide(String viper_1, String viper_2, String claw, String hinge, HardwareMap hMap, boolean setup) {
+    public ViperSlide(String viper_1, String viper_2, String claw, String hinge, String touchSensor,
+                      HardwareMap hMap, boolean setup) {
         this.v1 = hMap.get(DcMotor.class, viper_1);
         this.v2 = hMap.get(DcMotor.class, viper_2);
 
         this.claw = hMap.get(Servo.class, claw);
         this.hinge = hMap.get(Servo.class, hinge);
+
+        this.touchSensor = hMap.get(TouchSensor.class, touchSensor);
 
         if (setup) {
             completeSetup();
@@ -129,6 +146,29 @@ public class ViperSlide {
         down();
     }
 
+    /**
+     * Resetting Viper Slide
+     */
+    public void resetOffset() {
+        resetting = true;
+    }
+
+    public void updateOffsetReset() {
+        if (resetting) {
+            if (isTouchingBottom()) {
+                resetting = false;
+                offset = -1 * getRawPosition();
+                down();
+            } else {
+                customPosition(getRawPosition() - 500);
+            }
+        }
+    }
+
+    public boolean isTouchingBottom() {
+        return touchSensor.isPressed();
+    }
+
     /*
     * Individual components for running the VS motors with run to position
     */
@@ -174,8 +214,7 @@ public class ViperSlide {
     }
 
     public void halfway() {
-        v1.setTargetPosition(HALF_POSITION - offset);
-        v2.setTargetPosition(HALF_POSITION - offset);
+
     }
 
     public void hang() {
@@ -195,9 +234,13 @@ public class ViperSlide {
         v1.setPower(power);
         v2.setPower(power);
     }
-
+// TODO: DO THE BOUNCED AWAY POSITION
     public void setOffset(int newOffset) {
         offset = newOffset;
+    }
+
+    public int getRawPosition() {
+        return (v1.getCurrentPosition() + v2.getCurrentPosition()) / 2;
     }
 
     public int getPosition() {

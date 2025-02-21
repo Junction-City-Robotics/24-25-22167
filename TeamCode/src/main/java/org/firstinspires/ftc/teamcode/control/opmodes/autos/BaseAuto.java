@@ -6,8 +6,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.control.systems.Claw;
 import org.firstinspires.ftc.teamcode.control.systems.Link;
+import org.firstinspires.ftc.teamcode.control.systems.Sensors;
 import org.firstinspires.ftc.teamcode.control.systems.ViperSlide;
-import org.firstinspires.ftc.teamcode.miscellaneous.SessionStorage;
+import org.firstinspires.ftc.teamcode.miscellaneous.Globals;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
 
 import java.util.concurrent.Executors;
@@ -22,6 +23,7 @@ public class BaseAuto extends LinearOpMode {
     protected ViperSlide vs;
     protected Claw claw;
     protected Link link;
+    protected Sensors sensors;
 
     // RR Drive
     protected SampleMecanumDrive drive;
@@ -30,9 +32,10 @@ public class BaseAuto extends LinearOpMode {
 
     private void initSystems() {
         // External IO Systems
-        vs = new ViperSlide("viper_1", "viper_2", "viper_claw", "hinge", hardwareMap);
+        vs = new ViperSlide("viper_1", "viper_2", "viper_claw", "hinge", "viper_touch", hardwareMap);
         claw = new Claw("finger", "wrist", "elbow", "arm", hardwareMap);
         link = new Link("l1", "l2", hardwareMap);
+        sensors = new Sensors("color", "back_touch", hardwareMap);
 
         // RR Drive System
         drive = new SampleMecanumDrive(hardwareMap);
@@ -52,7 +55,7 @@ public class BaseAuto extends LinearOpMode {
             autoContents();
         }
 
-        SessionStorage.teleopEntryPose = drive.getPoseEstimate();
+        Globals.teleopEntryPose = drive.getPoseEstimate();
     }
 
     public void beforeStart() {
@@ -66,14 +69,5 @@ public class BaseAuto extends LinearOpMode {
 
     protected void timeoutRunnable(double seconds, Runnable task) {
         scheduler.schedule(task, (long) seconds, TimeUnit.SECONDS);
-    }
-
-    protected void updateSystems(ViperSlide viperSlide, MecanumDrive mecanumDrive) {
-        while (!isStopRequested()) {
-            timeoutRunnable(0.5, () -> {
-                SessionStorage.viperslideStartOffset = viperSlide.getPosition();
-                SessionStorage.teleopEntryPose = mecanumDrive.getPoseEstimate();
-            });
-        }
     }
 }

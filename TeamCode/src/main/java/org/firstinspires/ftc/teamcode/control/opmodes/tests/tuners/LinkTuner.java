@@ -1,15 +1,17 @@
 package org.firstinspires.ftc.teamcode.control.opmodes.tests.tuners;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.control.systems.Link;
 
 @TeleOp(name = "Link Tuner", group = "tuners")
+@Config
 public class LinkTuner extends LinearOpMode {
-    private double position = 0;
+    public static double position = 0;
 
-    private boolean isClicked = false;
+    public static boolean isClicked = false;
 
     @Override
     public void runOpMode() {

@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.control.systems.Claw;
 import org.firstinspires.ftc.teamcode.control.systems.Link;
+import org.firstinspires.ftc.teamcode.control.systems.Sensors;
 import org.firstinspires.ftc.teamcode.control.systems.ViperSlide;
 import org.firstinspires.ftc.teamcode.miscellaneous.input.ControllerActionManager;
 import org.firstinspires.ftc.teamcode.roadrunner.drive.SampleMecanumDrive;
@@ -20,6 +21,7 @@ public class BaseTeleop extends LinearOpMode {
     protected ViperSlide vs;
     protected Claw claw;
     protected Link link;
+    protected Sensors sensors;
 
     // RR Drive
     protected SampleMecanumDrive drive;
@@ -41,9 +43,10 @@ public class BaseTeleop extends LinearOpMode {
 
     private void initSystems() {
         // External IO Systems
-        vs = new ViperSlide("viper_1", "viper_2", "viper_claw", "hinge", hardwareMap);
+        vs = new ViperSlide("viper_1", "viper_2", "viper_claw", "hinge", "viper_touch", hardwareMap);
         claw = new Claw("finger", "wrist", "elbow", "arm", hardwareMap);
         link = new Link("l1", "l2", hardwareMap);
+        sensors = new Sensors("color", "back_touch", hardwareMap);
 
         // RR Drive System
         drive = new SampleMecanumDrive(hardwareMap);

@@ -51,7 +51,7 @@ public class SensorDigitalTouch extends LinearOpMode {
     public void runOpMode() {
 
         // get a reference to our touchSensor object.
-        digitalTouch = hardwareMap.get(DigitalChannel.class, "digitalTouch");
+        digitalTouch = hardwareMap.get(DigitalChannel.class, "viper_touch");
 
         digitalTouch.setMode(DigitalChannel.Mode.INPUT);
         telemetry.addData("DigitalTouchSensorExample", "Press start to continue...");

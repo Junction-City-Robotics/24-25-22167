@@ -4,7 +4,7 @@ import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import org.firstinspires.ftc.teamcode.miscellaneous.SessionStorage;
+import org.firstinspires.ftc.teamcode.miscellaneous.Globals;
 import org.firstinspires.ftc.teamcode.roadrunner.trajectorysequence.TrajectorySequence;
 
 import org.firstinspires.ftc.teamcode.control.Positions;
@@ -36,7 +36,6 @@ public class RightSideAuto extends BaseAuto {
 
         drive.followTrajectorySequence(mainTrajectory);
 
-        SessionStorage.teleopEntryPose = drive.getPoseEstimate();
-        SessionStorage.viperslideStartOffset = vs.getPosition();
+        Globals.teleopEntryPose = drive.getPoseEstimate();
     }
 }
