@@ -22,6 +22,10 @@ allprojects {
         mavenCentral()
         google()
     }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.compilerArgs << "-Xlint:-options"
+    }
 }
 
 repositories {
