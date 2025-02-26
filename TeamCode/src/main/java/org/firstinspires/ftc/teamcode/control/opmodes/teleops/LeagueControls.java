@@ -5,12 +5,13 @@ import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.control.opmodes.Positions;
-import org.firstinspires.ftc.teamcode.control.systems.ViperSlide;
 
-@TeleOp(name = "T3 Controls", group = "teleops")
-public class T3Controls extends BaseTeleop {
+@TeleOp(name = "League Controls", group = "teleops")
+public class LeagueControls extends BaseTeleop {
     private boolean isOpen = true;
     private boolean isPressingB = false;
+
+    private boolean currentlyHanging = false;
 
     @Override
     public void beforeStart() {
@@ -39,6 +40,22 @@ public class T3Controls extends BaseTeleop {
 
         driveControls();
         systemsControls();
+
+        // Updating auto hang
+        if (sensors.isTouchingBack() && !currentlyHanging) {
+            currentlyHanging = true;
+
+            // Actually slamming it down
+            vs.hang();
+            timeoutRunnable(0.5, () -> vs.hingeForceHang());
+
+            // Returning back to normal position
+            timeoutRunnable(1.2, () -> vs.openClaw());
+            timeoutRunnable(1.7, () -> vs.hingePickup());
+            timeoutRunnable(1.7, () -> vs.down());
+            timeoutRunnable(1.8, () -> drive.followTrajectory(drive.trajectoryBuilder(Positions.ORIGIN).forward(1).build()));
+            timeoutRunnable(2.0, () -> currentlyHanging = false);
+        }
 
         // Updates
         telemetry.addData("Current Position", drive.getPoseEstimate());
