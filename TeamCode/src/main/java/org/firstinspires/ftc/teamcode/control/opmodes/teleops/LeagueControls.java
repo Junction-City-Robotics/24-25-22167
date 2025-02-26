@@ -8,7 +8,6 @@ import org.firstinspires.ftc.teamcode.control.opmodes.Positions;
 
 @TeleOp(name = "League Controls", group = "teleops")
 public class LeagueControls extends BaseTeleop {
-    private boolean isOpen = true;
     private boolean isPressingB = false;
 
     private boolean currentlyHanging = false;
@@ -42,7 +41,7 @@ public class LeagueControls extends BaseTeleop {
         systemsControls();
 
         // Updating auto hang
-        if (sensors.isTouchingBack() && !currentlyHanging) {
+        if (sensors.isTouchingBack() && !currentlyHanging && !vs.clawIsOpen() && !vs.isResettingOffset()) {
             currentlyHanging = true;
 
             // Actually slamming it down
@@ -53,8 +52,7 @@ public class LeagueControls extends BaseTeleop {
             timeoutRunnable(1.2, () -> vs.openClaw());
             timeoutRunnable(1.7, () -> vs.hingePickup());
             timeoutRunnable(1.7, () -> vs.down());
-            timeoutRunnable(1.8, () -> drive.followTrajectory(drive.trajectoryBuilder(Positions.ORIGIN).forward(1).build()));
-            timeoutRunnable(2.0, () -> currentlyHanging = false);
+            timeoutRunnable(1.7, () -> currentlyHanging = false);
         }
 
         // Updates
@@ -116,22 +114,22 @@ public class LeagueControls extends BaseTeleop {
             String vsButton = controls.getMostRecentButtonInSection("viperSlide");
             switch (vsButton) {
                 case "a":
-                    if (!vs.resetting) {
+                    if (!vs.isResettingOffset()) {
                         vs.down();
                     }
                     break;
                 case "b":
-                    if (!vs.resetting) {
+                    if (!vs.isResettingOffset()) {
                         vs.hang();
                     }
                     break;
                 case "y":
-                    if (!vs.resetting) {
+                    if (!vs.isResettingOffset()) {
                         vs.up();
                     }
                     break;
                 case "x":
-                    if (!vs.resetting) {
+                    if (!vs.isResettingOffset()) {
                         vs.halfway();
                     }
                     break;
@@ -140,7 +138,7 @@ public class LeagueControls extends BaseTeleop {
                     break;
 
                 case "dpadUp": // Hanging specimen macro
-                    if (!vs.resetting) {
+                    if (!vs.isResettingOffset()) {
                         vs.hang();
                     }
 
@@ -168,23 +166,19 @@ public class LeagueControls extends BaseTeleop {
             // Front Claw
             case "a":
                 claw.close();
-                isOpen = false;
                 break;
             case "y":
                 claw.open();
-                isOpen = true;
                 break;
 
             case "b":
                 // Checking to see if already pressing B
                 if (!isPressingB) {
                     // If claw is open, close it. If it's closed, open it.
-                    if (isOpen) {
+                    if (vs.clawIsOpen()) {
                         claw.close();
-                        isOpen = false;
                     } else {
                         claw.open();
-                        isOpen = true;
                     }
                 }
                 isPressingB = true;
@@ -234,8 +228,6 @@ public class LeagueControls extends BaseTeleop {
                 claw.wristDeposit();
                 claw.elbowDown();
                 claw.armPickup();
-
-                isOpen = true;
 
                 break;
 

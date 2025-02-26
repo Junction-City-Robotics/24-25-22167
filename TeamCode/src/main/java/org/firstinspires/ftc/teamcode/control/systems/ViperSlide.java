@@ -28,7 +28,10 @@ public class ViperSlide {
     private final ScheduledExecutorService touchSensorScheduler = Executors.newScheduledThreadPool(1);
 
     private int offset = 0;
-    public boolean resetting = false;
+    private boolean resetting = false;
+
+    // Sees if the hinge claw is open
+    private boolean isOpen = false;
 
     /**
      * Config Variables
@@ -165,6 +168,10 @@ public class ViperSlide {
         }
     }
 
+    public boolean isResettingOffset() {
+        return resetting;
+    }
+
     public boolean isTouchingBottom() {
         return touchSensor.isPressed();
     }
@@ -277,11 +284,17 @@ public class ViperSlide {
     }
 
     public void openClaw() {
+        isOpen = true;
         claw.setPosition(CLAW_OPEN);
     }
 
     public void closeClaw() {
+        isOpen = false;
         claw.setPosition(CLAW_CLOSE);
+    }
+
+    public boolean clawIsOpen() {
+        return isOpen;
     }
 
     // Hinge Positions
