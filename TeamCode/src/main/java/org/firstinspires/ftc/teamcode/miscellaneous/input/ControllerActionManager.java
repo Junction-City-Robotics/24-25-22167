@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.miscellaneous.input;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
 
-import org.firstinspires.ftc.teamcode.miscellaneous.input.sections.BrushButtonSection;
 import org.firstinspires.ftc.teamcode.miscellaneous.input.sections.ClawButtonSection;
 import org.firstinspires.ftc.teamcode.miscellaneous.input.sections.DriveButtonSection;
 import org.firstinspires.ftc.teamcode.miscellaneous.input.sections.LinkButtonSection;

@@ -40,10 +40,11 @@ public class LeagueControls extends BaseTeleop {
         driveControls();
         systemsControls();
 
+        telemetry.addData("EEEE", "!");
         // Updating auto hang
         if (sensors.isTouchingBack() && !currentlyHanging && !vs.clawIsOpen() && !vs.isResettingOffset()) {
             currentlyHanging = true;
-
+            telemetry.addData("EEEE", "?");
             // Actually slamming it down
             vs.hang();
             timeoutRunnable(0.5, () -> vs.hingeForceHang());

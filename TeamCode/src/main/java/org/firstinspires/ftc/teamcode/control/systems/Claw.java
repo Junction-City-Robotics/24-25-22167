@@ -114,4 +114,16 @@ public class Claw {
     public void setCustomElbowPosition(double position) {
         elbow.setPosition(position);
     }
+
+    public void crane() {
+        setCustomWristPosition(0.3);
+        setCustomElbowPosition(0.85);
+        setCustomArmPosition(0.25);
+    }
+
+    public void crane(double armOffset) {
+        setCustomWristPosition(0.3);
+        setCustomElbowPosition(0.85);
+        setCustomArmPosition(0.25 - armOffset);
+    }
 }
