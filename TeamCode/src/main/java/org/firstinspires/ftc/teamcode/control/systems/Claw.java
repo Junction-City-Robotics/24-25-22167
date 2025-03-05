@@ -126,4 +126,10 @@ public class Claw {
         setCustomElbowPosition(0.85);
         setCustomArmPosition(0.25 - armOffset);
     }
+
+    public void pickup() {
+        wristDeposit();
+        elbowDown();
+        armPickup();
+    }
 }

@@ -11,33 +11,36 @@ import org.firstinspires.ftc.teamcode.roadrunner.trajectorysequence.TrajectorySe
 
 @Autonomous(name = "Left Side Auto", group = "autos")
 public class LeftSideAuto extends BaseAuto {
+    // Scan location
     private static final Pose2d SAMPLE_SCAN_LOCATION = new Pose2d(-32, 47, Math.toRadians(0));
 
+    // Trajectories
     private TrajectorySequence firstHangTrajectory;
+    private TrajectorySequence hangToSampleScanTrajectory;
     private TrajectorySequence bucketToSampleScanTrajectory;
+    private TrajectorySequence bucketToLastSampleScanTrajectory;
     private TrajectorySequence resetToSampleScanTrajectory;
     private TrajectorySequence parkingTrajectory;
     private TrajectorySequence sampleToBucketTrajectory;
 
-    private enum STATES {
-        RESETTING,
-        SEARCHING,
-        DEPOSITING
-    }
-    private boolean lastSampleBeingCollects = false;
+    // States
+    private static final int RESETTING = 0;
+    private static final int SEARCHING = 1;
+    private static final int DEPOSITING = 2;
+
+    // Sample collection data
+    private boolean lastSampleBeingCollected = false;
 
     private int collectedSamples = 0;
 
-    private void telemetryBuildStatus(String status,
-                                      boolean initialHangIsDown,
-                                      boolean sampleToBucket,
-                                      boolean bucketToSampleScan,
-                                      boolean parking) {
+    private void telemetryBuildStatus(String status) {
         telemetry.addData("Building Trajectories", status);
-        telemetry.addData("\tInitial Hang", initialHangIsDown ? "COMPLETE" : "INCOMPLETE");
-        telemetry.addData("\tSample to Bucket", sampleToBucket ? "COMPLETE" : "INCOMPLETE");
-        telemetry.addData("\tBucket to Sample Scan", bucketToSampleScan ? "COMPLETE" : "INCOMPLETE");
-        telemetry.addData("\tParking", parking ? "COMPLETE" : "INCOMPLETE");
+        telemetry.addData("\tInitial Hang", firstHangTrajectory != null ? "COMPLETE" : "INCOMPLETE");
+        telemetry.addData("\tHang to Sample Scan", hangToSampleScanTrajectory != null ? "COMPLETE" : "INCOMPLETE");
+        telemetry.addData("\tSample to Bucket", sampleToBucketTrajectory != null ? "COMPLETE" : "INCOMPLETE");
+        telemetry.addData("\tBucket to Sample Scan", bucketToSampleScanTrajectory != null ? "COMPLETE" : "INCOMPLETE");
+        telemetry.addData("\tBucket to Last Sample Scan", bucketToLastSampleScanTrajectory != null ? "COMPLETE" : "INCOMPLETE");
+        telemetry.addData("\tParking", parkingTrajectory != null ? "COMPLETE" : "INCOMPLETE");
         telemetry.update();
     }
 
@@ -62,6 +65,8 @@ public class LeftSideAuto extends BaseAuto {
                 .addTemporalMarker(() -> {
                     vs.down();
                     vs.hingePickup();
+
+                    collectedSamples++;
                 })
                 .build();
 
@@ -84,7 +89,7 @@ public class LeftSideAuto extends BaseAuto {
         vs.completeSetup();
         vs.setPower(0.0);
 
-        telemetryBuildStatus("WAIT . . .", false, false, false, false);
+        telemetryBuildStatus("WAIT . . .");
 
         // Creating first hang trajectory
         firstHangTrajectory = drive.trajectorySequenceBuilder(Positions.LEFT_START)
@@ -109,13 +114,25 @@ public class LeftSideAuto extends BaseAuto {
                     vs.hingePickup();
                 })
                 .build();
-        telemetryBuildStatus("WAIT . . .", true, false,false, false);
+        telemetryBuildStatus("WAIT . . .");
+
+        // Hang to sample scanner
+        hangToSampleScanTrajectory = drive.trajectorySequenceBuilder(firstHangTrajectory.end())
+                .splineTo(SAMPLE_SCAN_LOCATION.vec(), SAMPLE_SCAN_LOCATION.getHeading())
+                .build();
+        telemetryBuildStatus("WAIT . . .");
 
         // Bucket to sample scanner
         bucketToSampleScanTrajectory = drive.trajectorySequenceBuilder(Positions.BUCKETS)
                 .splineTo(SAMPLE_SCAN_LOCATION.vec(), SAMPLE_SCAN_LOCATION.getHeading())
                 .build();
-        telemetryBuildStatus("WAIT . . .", true, true,false, false);
+        telemetryBuildStatus("WAIT . . .");
+
+        // Bucket to LAST sample scanner
+        bucketToLastSampleScanTrajectory = drive.trajectorySequenceBuilder(Positions.BUCKETS)
+                .splineToLinearHeading(new Pose2d(-25.5, 62, Math.toRadians(90)), Math.toRadians(90))
+                .build();
+        telemetryBuildStatus("WAIT . . .");
 
         // Pixel to bucket trajectory
         sampleToBucketTrajectory = drive.trajectorySequenceBuilder(Positions.LEFT_START)
@@ -140,7 +157,7 @@ public class LeftSideAuto extends BaseAuto {
                     collectedSamples++;
                 })
                 .build();
-        telemetryBuildStatus("WAIT . . .", true, true,true, false);
+        telemetryBuildStatus("WAIT . . .");
 
         // Creating parking trajectory
         parkingTrajectory = drive.trajectorySequenceBuilder(Positions.LEFT_START)
@@ -159,7 +176,7 @@ public class LeftSideAuto extends BaseAuto {
                 // Touching lower bar
                 .addTemporalMarker(() -> vs.hingeForceHang())
                 .build();
-        telemetryBuildStatus("WAIT . . .", true, true,true, true);
+        telemetryBuildStatus("WAIT . . .");
 
         // Creating Trajectory
 //        drive.setPoseEstimate(Positions.LEFT_START);
@@ -280,7 +297,7 @@ public class LeftSideAuto extends BaseAuto {
 //                // End
 //                .build();
 
-        telemetryBuildStatus("BUILT - READY TO RUN", true, true,true, true);
+        telemetryBuildStatus("BUILT - READY TO RUN");
     }
 
     @Override
@@ -292,48 +309,93 @@ public class LeftSideAuto extends BaseAuto {
         // Initial hanging
         drive.followTrajectorySequence(firstHangTrajectory);
 
-        // Collecting and hanging pixels
-        STATES state = STATES.SEARCHING;
-        while (time.startTime() < 20) {
-            if (state.equals(STATES.RESETTING)) {
-                resetScan();
-                state = STATES.SEARCHING;
-            } else if (state.equals(STATES.SEARCHING)) {
-                claw.crane(0.05);
-                drive.setWeightedDrivePower(
-                        new Pose2d(
-                                0,
-                                0.2,
-                                0
-                        )
-                );
+        // Going to pixels to start scan
 
-                if (sensors.getDistance() <= 4.5) {
+        // Collecting and hanging pixels
+        int state = SEARCHING;
+        while (time.startTime() < 20) {
+            telemetry.addData("Current State", state);
+            telemetry.addData("\tResetting", 0);
+            telemetry.addData("\tScanning", 1);
+            telemetry.addData("\tDepositing", 2);
+
+            // Resetting Scan if no pixel found
+            if (state == RESETTING) {
+                resetScan();
+                state = SEARCHING;
+            }
+
+            // Looking for pixels
+            else if (state == SEARCHING) {
+                claw.crane(0.05);
+
+                // For scanning moving sideways
+                if (!lastSampleBeingCollected) {
                     drive.setWeightedDrivePower(
                             new Pose2d(
                                     0,
-                                    0,
+                                    0.2,
                                     0
                             )
                     );
 
-                    claw.close();
+                    if (sensors.getDistance() <= 4.5) {
+                        drive.setWeightedDrivePower(
+                                new Pose2d(
+                                        0,
+                                        0,
+                                        0
+                                )
+                        );
 
-                    state = STATES.DEPOSITING;
+                        claw.close();
+
+                        state = DEPOSITING;
+                    }
+                } // Scanning moving forward
+                else {
+                    drive.setWeightedDrivePower(
+                            new Pose2d(
+                                    0.2,
+                                    0.0,
+                                    0
+                            )
+                    );
+
+                    if (sensors.getDistance() <= 4.5) {
+                        drive.setWeightedDrivePower(
+                                new Pose2d(
+                                        0,
+                                        0,
+                                        0
+                                )
+                        );
+
+                        // Going down to grab
+                        claw.open();
+                        claw.pickup();
+
+                        // Closing claw
+                        timeoutRunnable(0.65, () -> claw.close());
+
+                        state = DEPOSITING;
+                    }
                 }
-
-            } else if (state.equals(STATES.DEPOSITING)) {
+            // Bringing held sample to the bucket
+            } else if (state == DEPOSITING) {
                 // Depositing last one into bucket
                 depositSampleIntoBucket();
 
-                if (collectedSamples == 2) {
-                    lastSampleBeingCollects = true;
-                } else if (collectedSamples == 3) {
+                lastSampleBeingCollected = collectedSamples >= 2;
+
+                // Stop searching if all 3 samples have been collected
+                if (collectedSamples == 3) {
                     break;
                 }
 
+                // Returning to position
                 drive.followTrajectorySequence(bucketToSampleScanTrajectory);
-                state = STATES.SEARCHING;
+                state = SEARCHING;
             }
         }
 
