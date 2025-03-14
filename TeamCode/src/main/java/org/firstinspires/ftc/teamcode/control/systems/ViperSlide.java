@@ -47,8 +47,8 @@ public class ViperSlide {
     public static double CLAW_CLOSE = 0.0;
 
     // Hinge Positions
-    public static double HINGE_PICKUP = 1.0;
-    public static double HINGE_BUCKET = 0.2;
+    public static double HINGE_PICKUP = 0.95;
+    public static double HINGE_BUCKET = 0.14;
     public static double HINGE_FORCE_HANG = 0.0;
 
     // Directions

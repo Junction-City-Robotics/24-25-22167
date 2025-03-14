@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.control.opmodes.teleops;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.control.systems.Claw;
 import org.firstinspires.ftc.teamcode.control.systems.Link;
@@ -85,5 +86,16 @@ public class BaseTeleop extends LinearOpMode {
 
     protected void timeoutRunnable(double seconds, Runnable task) {
         scheduler.schedule(task, (long) seconds, TimeUnit.SECONDS);
+    }
+
+    protected void waitSeconds(double seconds) {
+        // Gets current time, and starts tracking
+        ElapsedTime c = new ElapsedTime();
+        c.startTime();
+
+        // Wait till tracked time exceeds / reaches requested time. Also checks for opmode stops.
+        while (c.seconds() <= seconds && !isStopRequested() && opModeIsActive()) {
+            continue;
+        }
     }
 }

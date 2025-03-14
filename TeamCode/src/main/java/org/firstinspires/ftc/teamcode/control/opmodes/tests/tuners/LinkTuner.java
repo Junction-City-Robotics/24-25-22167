@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.control.systems.Link;
 @TeleOp(name = "Link Tuner", group = "tuners")
 @Config
 public class LinkTuner extends LinearOpMode {
-    public static double position = 0;
+    public static double position = 0.5;
 
     public static boolean isClicked = false;
 
@@ -21,22 +21,22 @@ public class LinkTuner extends LinearOpMode {
         waitForStart();
         while (opModeIsActive()) {
             // Input Handling
-            if (gamepad1.dpad_up) {
+            if (gamepad1.right_bumper) {
                 if (!isClicked) {
                     position += 0.05;
                     isClicked = true;
                 }
-            } else if (gamepad1.y) {
+            } else if (gamepad1.right_trigger > 0.2) {
                 if (!isClicked) {
                     position += 0.1;
                     isClicked = true;
                 }
-            } else if (gamepad1.dpad_down) {
+            } else if (gamepad1.left_bumper) {
                 if (!isClicked) {
                     position -= 0.05;
                     isClicked = true;
                 }
-            } else if (gamepad1.a) {
+            } else if (gamepad1.left_trigger > 0.2) {
                 if (!isClicked) {
                     position -= 0.1;
                     isClicked = true;
@@ -48,9 +48,8 @@ public class LinkTuner extends LinearOpMode {
             link.setCustomPosition(position);
 
             // Telemetry
-            telemetry.addData("Instructions", "Dpad up and y increase the position, " +
-                    "and dpad down and a decrease it. This will change the link servo positions.");
             telemetry.addData("Position", position + "");
+            telemetry.addData("Offset", Link.RIGHT_SERVO_OFFSET);
             telemetry.update();
         }
     }
