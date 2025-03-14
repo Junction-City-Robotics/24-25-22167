@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.miscellaneous.input.ControllerActionManager;
 
 @TeleOp(name = "Base Teleop Sample", group = "teleop")
-
+@Disabled
 public class BaseTeleopSample extends BaseTeleop {
     @Override
     public void teleopContents() {

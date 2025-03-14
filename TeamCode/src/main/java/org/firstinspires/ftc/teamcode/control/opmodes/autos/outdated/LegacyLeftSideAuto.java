@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.control.opmodes.autos.outdated;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import org.firstinspires.ftc.teamcode.control.opmodes.autos.BaseAuto;
 import org.firstinspires.ftc.teamcode.miscellaneous.Globals;
@@ -11,6 +12,7 @@ import org.firstinspires.ftc.teamcode.roadrunner.trajectorysequence.TrajectorySe
 import org.firstinspires.ftc.teamcode.control.Positions;
 
 @Autonomous(name = "Left Side Auto (Legacy)", group = "autos")
+@Disabled
 public class LegacyLeftSideAuto extends BaseAuto {
     private TrajectorySequence mainTrajectory;
 
@@ -54,13 +56,13 @@ public class LegacyLeftSideAuto extends BaseAuto {
                 // Pixel 1
                 .splineTo(new Pose2d(-32, 47).vec(), Math.toRadians(0))// TODO: Pick up pixel one
                 .addTemporalMarker(() -> { // Gets claw into position
-                    claw.open();
-                    claw.wristDeposit();
-                    claw.elbowDown();
+                    claw.fingerOpen();
+                    claw.wristCenter();
+                    claw.elbowPickup();
                     claw.armPickup();
                 })
                 .waitSeconds(0.75)
-                .addTemporalMarker(() -> claw.close()) // Grabs it
+                .addTemporalMarker(() -> claw.fingerClose()) // Grabs it
                 .waitSeconds(0.5)
                 .addTemporalMarker(() -> { // Brings pixel to viperslide claw
                     claw.wristDeposit();
@@ -70,12 +72,12 @@ public class LegacyLeftSideAuto extends BaseAuto {
                 .waitSeconds(0.75)
                 .addTemporalMarker(() -> vs.closeClaw())
                 .waitSeconds(0.4)
-                .addTemporalMarker(() -> claw.open())
+                .addTemporalMarker(() -> claw.fingerOpen())
                 .waitSeconds(0.3)
                 .addTemporalMarker(() -> { // Cranes the claw
                     claw.setCustomElbowPosition(0.85);
                     claw.setCustomArmPosition(0.3);
-                    claw.wristVertical(); // NOTE: Changed because we approach it from the side
+                    // claw.wristVertical(); // NOTE: Changed because we approach it from the side
                 })
                 .splineToLinearHeading(Positions.BUCKETS, Positions.BUCKETS.getHeading()) // TODO: Deposit pixel one
                 .addTemporalMarker(() -> vs.up())
@@ -131,12 +133,12 @@ public class LegacyLeftSideAuto extends BaseAuto {
                 .splineToLinearHeading(new Pose2d(-25.5, 62, Math.toRadians(90)), Math.toRadians(90)) // TODO: Gra pixel 3
                 .addTemporalMarker(() -> { // Gets into position
                     vs.hingePickup();
-                    claw.open();
-                    claw.elbowDown();
+                    claw.fingerOpen();
+                    claw.elbowPickup();
                     claw.armPickup();
                 })
                 .waitSeconds(0.75)
-                .addTemporalMarker(() -> claw.close()) // Grabs it
+                .addTemporalMarker(() -> claw.fingerClose()) // Grabs it
                 .waitSeconds(0.9)
                 .back(7)
                 .addTemporalMarker(() -> { // Brings pixel to viperslide claw
@@ -147,7 +149,7 @@ public class LegacyLeftSideAuto extends BaseAuto {
                 .waitSeconds(0.75)
                 .addTemporalMarker(() -> vs.closeClaw())
                 .waitSeconds(0.9)
-                .addTemporalMarker(() -> claw.open())
+                .addTemporalMarker(() -> claw.fingerOpen())
                 .waitSeconds(0.5)
                 .addTemporalMarker(() -> { // Cranes the claw
                     claw.setCustomWristPosition(0.3);
@@ -190,7 +192,7 @@ public class LegacyLeftSideAuto extends BaseAuto {
     public void autoContents() {
         vs.closeClaw();
         vs.setPower(1.0);
-        claw.open();
+        claw.fingerOpen();
 
         drive.followTrajectorySequence(mainTrajectory);
 

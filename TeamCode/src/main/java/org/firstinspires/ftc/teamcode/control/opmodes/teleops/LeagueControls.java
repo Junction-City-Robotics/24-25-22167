@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.control.opmodes.teleops;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.control.opmodes.Positions;
 
@@ -10,7 +11,7 @@ import org.firstinspires.ftc.teamcode.control.opmodes.Positions;
 public class LeagueControls extends BaseTeleop {
     private boolean isPressingB = false;
 
-    private boolean currentlyHanging = false;
+    private boolean isHanging = false;
 
     @Override
     public void beforeStart() {
@@ -24,7 +25,7 @@ public class LeagueControls extends BaseTeleop {
     public void afterStart() {
         vs.afterStart(1.0);
 
-        claw.open();
+        claw.fingerOpen();
         vs.hingePickup();
 
         super.afterStart();
@@ -40,20 +41,29 @@ public class LeagueControls extends BaseTeleop {
         driveControls();
         systemsControls();
 
-        telemetry.addData("EEEE", "!");
         // Updating auto hang
-        if (sensors.isTouchingBack() && !currentlyHanging && !vs.clawIsOpen() && !vs.isResettingOffset()) {
-            currentlyHanging = true;
-            telemetry.addData("EEEE", "?");
+        if (sensors.isTouchingBack() && !isHanging && !vs.clawIsOpen() && !vs.isResettingOffset()) {
+            isHanging = true;
+
             // Actually slamming it down
             vs.hang();
-            timeoutRunnable(0.5, () -> vs.hingeForceHang());
+
+            waitSeconds(0.5);
+            vs.hingeForceHang();
 
             // Returning back to normal position
-            timeoutRunnable(1.2, () -> vs.openClaw());
-            timeoutRunnable(1.7, () -> vs.hingePickup());
-            timeoutRunnable(1.7, () -> vs.down());
-            timeoutRunnable(1.7, () -> currentlyHanging = false);
+            waitSeconds(0.7);
+            vs.openClaw();
+
+            waitSeconds(0.2);
+            vs.hingePickup();
+            vs.down();
+        }
+        // Resetting Hanging Status
+        else if (isHanging) {
+            if (!sensors.isTouchingBack()) {
+                isHanging = false;
+            }
         }
 
         // Updates
@@ -63,6 +73,7 @@ public class LeagueControls extends BaseTeleop {
         telemetry.addData("Red Seen", sensors.getColors().red);
         telemetry.addData("Alpha Seen", sensors.getColors().alpha);
         telemetry.addData("Distance", sensors.getDistance());
+        telemetry.addData("Main Claw Closed", claw.isClosed());
 
         super.teleopContents();
     }
@@ -91,64 +102,62 @@ public class LeagueControls extends BaseTeleop {
             }
             // Resetting Position if needed
             case "leftStickButton": {
-                drive.setPoseEstimate(Positions.ORIGIN);
-            } default: {
-                drive.setWeightedDrivePower(
-                        new Pose2d(
-                                0, 0, 0
-                        )
-                );
+                drive.setPoseEstimate(new Pose2d(drive.getPoseEstimate().getX(), drive.getPoseEstimate().getY(), Math.toRadians(0)));
             }
-
-            // Link
-            String linkButton = controls.getMostRecentButtonInSection("link");
-            switch (linkButton) {
-                case "rightTrigger":
-                    link.extendedPosition();
-                    break;
-                case "leftTrigger":
-                    link.startPosition();
-                    break;
+            default: {
+                drive.setWeightedDrivePower(new Pose2d(0, 0, 0));
+                break;
             }
-        
-            // Viper Slide
-            String vsButton = controls.getMostRecentButtonInSection("viperSlide");
-            switch (vsButton) {
-                case "a":
-                    if (!vs.isResettingOffset()) {
-                        vs.down();
-                    }
-                    break;
-                case "b":
-                    if (!vs.isResettingOffset()) {
-                        vs.hang();
-                    }
-                    break;
-                case "y":
-                    if (!vs.isResettingOffset()) {
-                        vs.up();
-                    }
-                    break;
-                case "x":
-                    if (!vs.isResettingOffset()) {
-                        vs.halfway();
-                    }
-                    break;
-                case "rightStickButton":
-                    vs.resetOffset();
-                    break;
+        }
 
-                case "dpadUp": // Hanging specimen macro
-                    if (!vs.isResettingOffset()) {
-                        vs.hang();
-                    }
+        // Link
+        String linkButton = controls.getMostRecentButtonInSection("link");
+        switch (linkButton) {
+            case "rightTrigger":
+                link.extendedPosition();
+                break;
+            case "leftTrigger":
+                link.startPosition();
+                break;
+        }
 
-                    timeoutRunnable(1.0, () -> vs.hingeForceHang());
-                    timeoutRunnable(1.75, () -> vs.openClaw());
-                    timeoutRunnable(2.15, () -> vs.hingePickup());
-                    timeoutRunnable(2.55, () -> vs.down());
-                    break;
-            }
+        // Viper Slide
+        String vsButton = controls.getMostRecentButtonInSection("viperSlide");
+        switch (vsButton) {
+            case "a":
+                if (!vs.isResettingOffset()) {
+                    vs.down();
+                }
+                break;
+            case "b":
+                if (!vs.isResettingOffset()) {
+                    vs.hang();
+                }
+                break;
+            case "y":
+                if (!vs.isResettingOffset()) {
+                    vs.up();
+                }
+                break;
+            case "x":
+                if (!vs.isResettingOffset()) {
+                    vs.halfway();
+                }
+                break;
+            case "rightStickButton":
+                vs.resetOffset();
+                break;
+
+            case "dpadUp": // Hanging specimen macro
+                if (!vs.isResettingOffset()) {
+                    vs.hang();
+                }
+
+                timeoutRunnable(1.0, () -> vs.hingeForceHang());
+                timeoutRunnable(1.75, () -> vs.openClaw());
+                timeoutRunnable(2.15, () -> vs.hingePickup());
+                timeoutRunnable(2.55, () -> vs.down());
+                break;
         }
     }
 
@@ -166,20 +175,20 @@ public class LeagueControls extends BaseTeleop {
                 break;
             // Front Claw
             case "a":
-                claw.close();
+                claw.fingerClose();
                 break;
             case "y":
-                claw.open();
+                claw.fingerOpen();
                 break;
 
             case "b":
                 // Checking to see if already pressing B
                 if (!isPressingB) {
                     // If claw is open, close it. If it's closed, open it.
-                    if (vs.clawIsOpen()) {
-                        claw.close();
+                    if (claw.isClosed()) {
+                        claw.fingerOpen();
                     } else {
-                        claw.open();
+                        claw.fingerClose();
                     }
                 }
                 isPressingB = true;
@@ -204,52 +213,47 @@ public class LeagueControls extends BaseTeleop {
             // Presets
             // Crane / Hang (Setting everything to half so it can get out the way)
             case "rightBumper":
-                claw.setCustomWristPosition(0.3);
-                claw.setCustomElbowPosition(0.85);
-                claw.setCustomArmPosition(0.25);
+                claw.crane();
                 break;
 
             // Grabbing Pixel into the viperslide claw
             case "leftBumper":
                 vs.closeClaw();
 
-                 timeoutRunnable(1.2, () -> claw.open());
+                timeoutRunnable(0.85, () -> claw.fingerOpen());
 
-                 timeoutRunnable(1.6, () -> {
-                     claw.setCustomWristPosition(0.3);
-                     claw.setCustomElbowPosition(0.85);
-                     claw.setCustomArmPosition(0.25);
-                 });
+                timeoutRunnable(1.0, () -> {
+                    claw.crane();
+                });
 
                 break;
 
             // Dropdown to pickup
             case "rightTrigger":
-                claw.open();
-                claw.wristDeposit();
-                claw.elbowDown();
-                claw.armPickup();
+                claw.pickup();
 
                 break;
 
             // Full deposit 
             case "leftTrigger":
                 // Setting arm into deposit position
-                claw.wristDeposit();
-                claw.elbowDeposit();
-                claw.armDeposit();
+                claw.deposit();
+
+                // Bringing link in
+                link.startPosition();
 
                 // Getting viperslide claw to pickup
                 vs.hingePickup();
+//                timeoutRunnable(1.2, () -> vs.hingePickup());
                 vs.openClaw();
                 break;
 
             // Adjusting Wrist
             case "leftStick":
-                claw.wristRotatedPercent(gamepad2.left_stick_x);
+//                claw.wristRotatedPercent(gamepad2.left_stick_x);
                 break;
             case "rightStick":
-                claw.elbowPositionPercent(1.0 - Math.abs(gamepad2.right_stick_y));
+//                claw.elbowPositionPercent(1.0 - Math.abs(gamepad2.right_stick_y));
                 break;
             default:
                 claw.wristDeposit();

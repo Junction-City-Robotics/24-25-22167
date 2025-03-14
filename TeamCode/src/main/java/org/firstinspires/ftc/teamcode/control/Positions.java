@@ -34,7 +34,7 @@ public class Positions {
     public static final Pose2d FRONT_CENTER = new Pose2d(-36, -2, Math.toRadians(90));
     public static final Pose2d BACK_CENTER = new Pose2d(0, -108, Math.toRadians(90)); // TODO: Deal with warning and translate to correct Pose
 
-    public static final Pose2d LEFT_NEAR = new Pose2d(-9, 25, Math.toRadians(90));
+    public static final Pose2d LEFT_NEAR = new Pose2d(-9, 20, Math.toRadians(90));
     public static final Pose2d LEFT_FAR = new Pose2d(9, 25, Math.toRadians(90));
 
     public static final Pose2d RIGHT_NEAR = new Pose2d(-9, -25, Math.toRadians(-90));

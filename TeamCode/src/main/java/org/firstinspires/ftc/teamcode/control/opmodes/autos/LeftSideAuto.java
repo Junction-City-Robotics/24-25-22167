@@ -1,85 +1,108 @@
 package org.firstinspires.ftc.teamcode.control.opmodes.autos;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.acmerobotics.roadrunner.trajectory.constraints.MecanumVelocityConstraint;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.control.Positions;
+import org.firstinspires.ftc.teamcode.control.systems.Link;
 import org.firstinspires.ftc.teamcode.miscellaneous.Globals;
+import org.firstinspires.ftc.teamcode.roadrunner.drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.roadrunner.trajectorysequence.TrajectorySequence;
 
 @Autonomous(name = "Left Side Auto", group = "autos")
+@Config
 public class LeftSideAuto extends BaseAuto {
-    // Scan location
-    private static final Pose2d SAMPLE_SCAN_LOCATION = new Pose2d(-32, 47, Math.toRadians(0));
+    // Scan locations
+    private static final Pose2d SAMPLE_SCAN_LOCATION = new Pose2d(-32.75, 45, Math.toRadians(0));
+    private static final Pose2d LAST_SAMPLE_SCAN_LOCATION = new Pose2d(-23.5, 55, Math.toRadians(90));
 
     // Trajectories
     private TrajectorySequence firstHangTrajectory;
-    private TrajectorySequence hangToSampleScanTrajectory;
-    private TrajectorySequence bucketToSampleScanTrajectory;
-    private TrajectorySequence bucketToLastSampleScanTrajectory;
-    private TrajectorySequence resetToSampleScanTrajectory;
     private TrajectorySequence parkingTrajectory;
     private TrajectorySequence sampleToBucketTrajectory;
 
-    // States
-    private static final int RESETTING = 0;
-    private static final int SEARCHING = 1;
-    private static final int DEPOSITING = 2;
-
     // Sample collection data
-    private boolean lastSampleBeingCollected = false;
-
     private int collectedSamples = 0;
+    private int totalResets = 0;
 
-    private void telemetryBuildStatus(String status) {
-        telemetry.addData("Building Trajectories", status);
-        telemetry.addData("\tInitial Hang", firstHangTrajectory != null ? "COMPLETE" : "INCOMPLETE");
-        telemetry.addData("\tHang to Sample Scan", hangToSampleScanTrajectory != null ? "COMPLETE" : "INCOMPLETE");
-        telemetry.addData("\tSample to Bucket", sampleToBucketTrajectory != null ? "COMPLETE" : "INCOMPLETE");
-        telemetry.addData("\tBucket to Sample Scan", bucketToSampleScanTrajectory != null ? "COMPLETE" : "INCOMPLETE");
-        telemetry.addData("\tBucket to Last Sample Scan", bucketToLastSampleScanTrajectory != null ? "COMPLETE" : "INCOMPLETE");
-        telemetry.addData("\tParking", parkingTrajectory != null ? "COMPLETE" : "INCOMPLETE");
-        telemetry.update();
+    // Scan Constants (Can be changed through dashboard)
+    private enum States {
+        RESETTING,
+        SEARCHING,
+        DEPOSITING
     }
 
+    public static double VELOCITY_PERCENT = 0.3;
+
+    public static boolean TIMED_SCAN = true;
+    public static double SCAN_TIME = 20; // (Seconds)
+
+    public static boolean COUNT_RESETS_TILL_ABORT = false;
+    public static int RESETS_TILL_ABORT = 3;
+
+    /**
+     * <p>
+     * A dynamic way to create trajectories and put samples into the top basket.
+     * This creates a complete trajectory, that navigates to buckets, drops held sample off,
+     * and resets the IO systems for next activity. It is dynamic because it creates a new
+     * trajectory based off of current position, and not a static preset.
+     * </p>
+     */
     private void depositSampleIntoBucket() {
-        telemetry.addData("Sample to Bucket Trajectory", "BUILDING");
-        telemetry.update();
-        sampleToBucketTrajectory = drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                // Navigating to buckets
-                .splineToLinearHeading(Positions.BUCKETS, Positions.BUCKETS.getHeading())
-
-                // Bringing VS Up to deposit
-                .addTemporalMarker(() -> vs.up())
-                .waitSeconds(1.0)
-
-                // Dropping sample in
-                .addTemporalMarker(() -> vs.hingeBucket())
-                .waitSeconds(0.6)
-                .addTemporalMarker(() -> vs.openClaw())
-                .waitSeconds(0.8)
-
-                // Retracting back to normal
-                .addTemporalMarker(() -> {
-                    vs.down();
-                    vs.hingePickup();
-
-                    collectedSamples++;
-                })
-                .build();
-
         drive.followTrajectorySequence(sampleToBucketTrajectory);
     }
 
-    private void resetScan() {
-        telemetry.addData("Reset To Scan Trajectory", "BUILDING");
+    private void scan() {
+        telemetry.addData("Scan", "BUILDING");
         telemetry.update();
-        resetToSampleScanTrajectory = drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .splineTo(SAMPLE_SCAN_LOCATION.vec(), SAMPLE_SCAN_LOCATION.getHeading())
+
+        TrajectorySequence scanTrajectory;
+        if (collectedSamples == 0)
+            scanTrajectory = drive.trajectorySequenceBuilder(SAMPLE_SCAN_LOCATION)
+                .setVelConstraint(new MecanumVelocityConstraint(DriveConstants.MAX_VEL * VELOCITY_PERCENT, DriveConstants.TRACK_WIDTH))
+                .strafeLeft(24)
                 .build();
 
+        else if (collectedSamples == 1)
+            scanTrajectory = drive.trajectorySequenceBuilder(SAMPLE_SCAN_LOCATION.plus(new Pose2d(0.0, 8.0, 0)))
+                    .setVelConstraint(new MecanumVelocityConstraint(DriveConstants.MAX_VEL * VELOCITY_PERCENT, DriveConstants.TRACK_WIDTH))
+                    .strafeLeft(24)
+                    .build();
+
+        else // Last One
+            scanTrajectory = drive.trajectorySequenceBuilder(LAST_SAMPLE_SCAN_LOCATION)
+                    .setVelConstraint(new MecanumVelocityConstraint(DriveConstants.MAX_VEL * VELOCITY_PERCENT, DriveConstants.TRACK_WIDTH))
+                    .forward(8)
+                    .build();
+
+        drive.followTrajectorySequenceAsync(scanTrajectory);
+
+        telemetry.addData("Scan", "RUNNING");
+        telemetry.update();
+    }
+
+    /**
+     * <p>
+     * When a scan has been ran, and failed, it needs to be reset (Like a typewriter).
+     * This function assembles a new trajectory to get there, based on current position,
+     * and then executes it.
+     * </p>
+     */
+    private void resetScan() {
+        // Changing scan location based on last scan method, or first two (See other comments for more detail)
+        TrajectorySequence resetToSampleScanTrajectory;
+        if (collectedSamples == 2) {
+            resetToSampleScanTrajectory = drive.trajectorySequenceBuilder(drive.getPoseEstimate())
+                    .splineToLinearHeading(LAST_SAMPLE_SCAN_LOCATION, LAST_SAMPLE_SCAN_LOCATION.getHeading())
+                    .build();
+        } else {
+            resetToSampleScanTrajectory = drive.trajectorySequenceBuilder(drive.getPoseEstimate())
+                    .splineToLinearHeading(SAMPLE_SCAN_LOCATION.plus(new Pose2d(0.0, collectedSamples == 1 ? 8.0 : 0.0, 0)), SAMPLE_SCAN_LOCATION.getHeading())
+                    .build();
+        }
         drive.followTrajectorySequence(resetToSampleScanTrajectory);
     }
 
@@ -89,7 +112,8 @@ public class LeftSideAuto extends BaseAuto {
         vs.completeSetup();
         vs.setPower(0.0);
 
-        telemetryBuildStatus("WAIT . . .");
+        telemetry.addData("Trajectories", "(Starting) WAIT . . .");
+        telemetry.update();
 
         // Creating first hang trajectory
         firstHangTrajectory = drive.trajectorySequenceBuilder(Positions.LEFT_START)
@@ -101,66 +125,61 @@ public class LeftSideAuto extends BaseAuto {
                 })
                 // Getting into position
                 .setReversed(true)
-                .splineToConstantHeading(Positions.FRONT_CENTER.vec().plus(new Vector2d(4.5, 8)), Math.toRadians(180)) // Move into position
+                .splineToConstantHeading(Positions.FRONT_CENTER.vec().plus(new Vector2d(7.5, 12)), Math.toRadians(0)) // Move into position
                 .setReversed(false)
 
                 // Slamming down and hanging
-                .addTemporalMarker(1.4, () -> vs.hingeForceHang()) // Slam into place
-                .waitSeconds(0.9)
+                .addTemporalMarker(0.9, () -> vs.hingeForceHang()) // Slam into place
                 .addTemporalMarker(() -> vs.openClaw()) // Let Go
-                .waitSeconds(0.2)
+                .splineTo(SAMPLE_SCAN_LOCATION.vec().plus(new Vector2d(0, -1.0)), SAMPLE_SCAN_LOCATION.getHeading())
                 .addTemporalMarker(() -> { // Retract back to normal
                     vs.down();
                     vs.hingePickup();
+                    claw.crane();
                 })
                 .build();
-        telemetryBuildStatus("WAIT . . .");
 
-        // Hang to sample scanner
-        hangToSampleScanTrajectory = drive.trajectorySequenceBuilder(firstHangTrajectory.end())
-                .splineTo(SAMPLE_SCAN_LOCATION.vec(), SAMPLE_SCAN_LOCATION.getHeading())
-                .build();
-        telemetryBuildStatus("WAIT . . .");
-
-        // Bucket to sample scanner
-        bucketToSampleScanTrajectory = drive.trajectorySequenceBuilder(Positions.BUCKETS)
-                .splineTo(SAMPLE_SCAN_LOCATION.vec(), SAMPLE_SCAN_LOCATION.getHeading())
-                .build();
-        telemetryBuildStatus("WAIT . . .");
-
-        // Bucket to LAST sample scanner
-        bucketToLastSampleScanTrajectory = drive.trajectorySequenceBuilder(Positions.BUCKETS)
-                .splineToLinearHeading(new Pose2d(-25.5, 62, Math.toRadians(90)), Math.toRadians(90))
-                .build();
-        telemetryBuildStatus("WAIT . . .");
+        telemetry.addData("Trajectories", "(Halfway) WAIT . . .");
+        telemetry.update();
 
         // Pixel to bucket trajectory
-        sampleToBucketTrajectory = drive.trajectorySequenceBuilder(Positions.LEFT_START)
+        sampleToBucketTrajectory = drive.trajectorySequenceBuilder(SAMPLE_SCAN_LOCATION)
+                .addTemporalMarker(() -> {
+                    claw.deposit();
+                    vs.openClaw();
+                    vs.hingePickup();
+                    vs.down();
+                })
+
+                .addTemporalMarker(0.7, () -> link.startPosition())
+                .addTemporalMarker(1.25, () -> vs.closeClaw())
+                .addTemporalMarker(1.35, () -> claw.fingerOpen())
+
                 // Navigating to buckets
                 .splineToLinearHeading(Positions.BUCKETS, Positions.BUCKETS.getHeading())
 
                 // Bringing VS Up to deposit
-                .addTemporalMarker(() -> vs.up())
-                .waitSeconds(2.4)
+                .addTemporalMarker(1.45, () -> vs.up())
+                .waitSeconds(0.7)
 
                 // Dropping sample in
                 .addTemporalMarker(() -> vs.hingeBucket())
-                .waitSeconds(0.6)
-                .addTemporalMarker(() -> vs.openClaw())
-                .waitSeconds(0.9)
+                .waitSeconds(0.4)
+                .addTemporalMarker(() -> {
+                    vs.openClaw();
+                    claw.crane();
+                })
+                .waitSeconds(0.3)
 
                 // Retracting back to normal
                 .addTemporalMarker(() -> {
                     vs.down();
                     vs.hingePickup();
-
-                    collectedSamples++;
                 })
                 .build();
-        telemetryBuildStatus("WAIT . . .");
 
         // Creating parking trajectory
-        parkingTrajectory = drive.trajectorySequenceBuilder(Positions.LEFT_START)
+        parkingTrajectory = drive.trajectorySequenceBuilder(Positions.BUCKETS)
                 // Getting everything set for moving
                 .addTemporalMarker(() -> {
                     vs.down();
@@ -168,234 +187,117 @@ public class LeftSideAuto extends BaseAuto {
                 })
 
                 // Parking at 1st level ascent
-                .splineToLinearHeading(Positions.BUCKETS.plus(new Pose2d(20, 4, Math.toRadians(90 + 45))), Math.toRadians(90))
+                .splineTo(Positions.LEFT_NEAR.vec().plus(new Vector2d(15, 15)), Math.toRadians(90))
                 .setReversed(true)
                 .splineTo(Positions.LEFT_NEAR.vec(), Math.toRadians(-90))
                 .setReversed(false)
 
                 // Touching lower bar
-                .addTemporalMarker(() -> vs.hingeForceHang())
+//                .addTemporalMarker(() -> vs.hingeForceHang())
                 .build();
-        telemetryBuildStatus("WAIT . . .");
 
-        // Creating Trajectory
-//        drive.setPoseEstimate(Positions.LEFT_START);
-//        mainTrajectory = drive.trajectorySequenceBuilder(Positions.LEFT_START)
-//                // Pixel 1
-//                .splineTo(new Pose2d(-32, 47).vec(), Math.toRadians(0))// TODO: Pick up pixel one
-//                .addTemporalMarker(() -> { // Gets claw into position
-//                    claw.open();
-//                    claw.wristDeposit();
-//                    claw.elbowDown();
-//                    claw.armPickup();
-//                })
-//                .waitSeconds(0.75)
-//                .addTemporalMarker(() -> claw.close()) // Grabs it
-//                .waitSeconds(0.5)
-//                .addTemporalMarker(() -> { // Brings pixel to viperslide claw
-//                    claw.wristDeposit();
-//                    claw.elbowDeposit();
-//                    claw.armDeposit();
-//                })
-//                .waitSeconds(0.75)
-//                .addTemporalMarker(() -> vs.closeClaw())
-//                .waitSeconds(0.4)
-//                .addTemporalMarker(() -> claw.open())
-//                .waitSeconds(0.3)
-//                .addTemporalMarker(() -> { // Cranes the claw
-//                    claw.setCustomElbowPosition(0.85);
-//                    claw.setCustomArmPosition(0.3);
-//                    claw.wristVertical(); // NOTE: Changed because we approach it from the side
-//                })
-//                .splineToLinearHeading(Positions.BUCKETS, Positions.BUCKETS.getHeading()) // TODO: Deposit pixel one
-//                .addTemporalMarker(() -> vs.up())
-//                .waitSeconds(2.4)
-//                .addTemporalMarker(() -> vs.hingeBucket())
-//                .waitSeconds(0.6)
-//                .addTemporalMarker(() -> vs.openClaw())
-//                .waitSeconds(0.9)
-//                .addTemporalMarker(() -> {
-//                    vs.down();
-//                    vs.hingePickup();
-//                })
-// TODO: X
-//                // Pixel 2
-//                .splineToLinearHeading(new Pose2d(-33, 58.5, Math.toRadians(0)), Math.toRadians(0)) // TODO: Collect Pixel two
-//                .addTemporalMarker(() -> { // Gets into position
-//                    vs.hingePickup();
-//                    claw.open();
-//                    claw.wristDeposit();
-//                    claw.elbowDown();
-//                    claw.armPickup();
-//                })
-//                .waitSeconds(0.25)
-//                .addTemporalMarker(() -> claw.close()) // Grabs it
-//                .waitSeconds(0.45)
-//                .addTemporalMarker(() -> { // Brings pixel to viperslide claw
-//                    claw.wristDeposit();
-//                    claw.elbowDeposit();
-//                    claw.armDeposit();
-//                })
-//                .splineToLinearHeading(Positions.BUCKETS, Positions.BUCKETS.getHeading()) // TODO: Deposit pixel two
-//                .addTemporalMarker(() -> vs.closeClaw())
-//                .waitSeconds(0.4)
-//                .addTemporalMarker(() -> claw.open())
-//                .waitSeconds(0.3)
-//                .addTemporalMarker(() -> { // Cranes the claw
-//                    claw.setCustomWristPosition(0.3);
-//                    claw.setCustomElbowPosition(0.85);
-//                    claw.setCustomArmPosition(0.25);
-//                    vs.up();
-//                })
-//                .waitSeconds(2.75)
-//                .addTemporalMarker(() -> vs.hingeBucket())
-//                .waitSeconds(0.6) l
-//                .addTemporalMarker(() -> vs.openClaw())
-//                .waitSeconds(0.9)
-//                .addTemporalMarker(() -> {
-//                    vs.down();
-//                    vs.hingePickup();
-//                })
-// TODO: X
-//                // Pixel 3
-//                .splineToLinearHeading(new Pose2d(-25.5, 62, Math.toRadians(90)), Math.toRadians(90)) // TODO: Gra pixel 3
-//                .addTemporalMarker(() -> { // Gets into position
-//                    vs.hingePickup();
-//                    claw.open();
-//                    claw.elbowDown();
-//                    claw.armPickup();
-//                })
-//                .waitSeconds(0.75)
-//                .addTemporalMarker(() -> claw.close()) // Grabs it
-//                .waitSeconds(0.9)
-//                .back(7)
-//                .addTemporalMarker(() -> { // Brings pixel to viperslide claw
-//                    claw.wristDeposit();
-//                    claw.elbowDeposit();
-//                    claw.armDeposit();
-//                })
-//                .waitSeconds(0.75)
-//                .addTemporalMarker(() -> vs.closeClaw())
-//                .waitSeconds(0.9)
-//                .addTemporalMarker(() -> claw.open())
-//                .waitSeconds(0.5)
-//                .addTemporalMarker(() -> { // Cranes the claw
-//                    claw.setCustomWristPosition(0.3);
-//                    claw.setCustomElbowPosition(0.85);
-//                    claw.setCustomArmPosition(0.25);
-//                    updatePositions();
-//                })
-//                .setReversed(true)
-//                .splineToLinearHeading(Positions.BUCKETS, Positions.BUCKETS.getHeading() * -1)
-//                .setReversed(false) // TODO: Put down pixel three
-//                .addTemporalMarker(() -> vs.up())
-//                .waitSeconds(2.75)
-//                .addTemporalMarker(() -> vs.hingeBucket())
-//                .waitSeconds(0.6)
-//                .addTemporalMarker(() -> vs.openClaw())
-//
-//                // End
-//                .build();
+        telemetry.addData("Trajectories", "COMPLETE");
+        telemetry.update();
 
-        telemetryBuildStatus("BUILT - READY TO RUN");
+        // Setting start position
+        drive.setPoseEstimate(Positions.LEFT_START);
     }
 
     @Override
     public void autoContents() {
+        // Locking things into place
         vs.closeClaw();
         vs.setPower(1.0);
-        claw.open();
+        claw.fingerOpen();
+        link.startPosition();
+        claw.wristCenter();
+
+        // Starting timer
+        time.reset();
+        time.startTime();
 
         // Initial hanging
         drive.followTrajectorySequence(firstHangTrajectory);
 
-        // Going to pixels to start scan
+        // Loop checks for the following:
+        //      - Within allotted time (If scan is timed)
+        //      - Not going over total allotted resets (If resets are counted)
+        //      - Opmode hasn't been ended / Told to end
+        States state = States.SEARCHING;
+        while ((time.startTime() > SCAN_TIME || !TIMED_SCAN) && (!COUNT_RESETS_TILL_ABORT || totalResets <= RESETS_TILL_ABORT)
+                && opModeIsActive() && !isStopRequested()) {
 
-        // Collecting and hanging pixels
-        int state = SEARCHING;
-        while (time.startTime() < 20) {
+            // Informing about current state of scan
             telemetry.addData("Current State", state);
-            telemetry.addData("\tResetting", 0);
-            telemetry.addData("\tScanning", 1);
-            telemetry.addData("\tDepositing", 2);
+            telemetry.addData("Total Resets", totalResets);
+            telemetry.addData("Has Sample", state == States.DEPOSITING);
+            telemetry.addData("Collected Samples", collectedSamples);
+            telemetry.addData("Heading", drive.getPoseEstimate().getHeading());
+            telemetry.update();
 
             // Resetting Scan if no pixel found
-            if (state == RESETTING) {
+            if (state == States.RESETTING) {
                 resetScan();
-                state = SEARCHING;
+                state = States.SEARCHING;
+                totalResets++;
             }
 
             // Looking for pixels
-            else if (state == SEARCHING) {
-                claw.crane(0.05);
+            else if (state == States.SEARCHING) {
+                // Scanning slowly to the left
+                scan();
+                while (opModeIsActive() && !isStopRequested()) {
+                    // Updating localization (Needed, because we aren't using a trajectory. We are using dynamic movement from teleop. (Drive.setWeightedPower())
+                    drive.update();
 
-                // For scanning moving sideways
-                if (!lastSampleBeingCollected) {
-                    drive.setWeightedDrivePower(
-                            new Pose2d(
-                                    0,
-                                    0.2,
-                                    0
-                            )
-                    );
-
+                    // Checking for depth change (Change in depth means claw went over a sample)
                     if (sensors.getDistance() <= 4.5) {
-                        drive.setWeightedDrivePower(
-                                new Pose2d(
-                                        0,
-                                        0,
-                                        0
-                                )
-                        );
+                        drive.setWeightedDrivePower(new Pose2d()); // Sets motor powers to 0 (Brakes)
 
-                        claw.close();
+                        // Waiting for bot to settle in place
+                        waitSeconds(0.4);
 
-                        state = DEPOSITING;
-                    }
-                } // Scanning moving forward
-                else {
-                    drive.setWeightedDrivePower(
-                            new Pose2d(
-                                    0.2,
-                                    0.0,
-                                    0
-                            )
-                    );
-
-                    if (sensors.getDistance() <= 4.5) {
-                        drive.setWeightedDrivePower(
-                                new Pose2d(
-                                        0,
-                                        0,
-                                        0
-                                )
-                        );
-
-                        // Going down to grab
-                        claw.open();
+                        // Grabbing Sample
                         claw.pickup();
 
-                        // Closing claw
-                        timeoutRunnable(0.65, () -> claw.close());
+                        waitSeconds(0.3);
+                        claw.fingerClose();
 
-                        state = DEPOSITING;
+                        // Waiting for pickup
+                        waitSeconds(0.35);
+                        claw.crane();
+                        link.setCustomPosition(Link.IN + (Link.OUT * 0.3));
+
+                        // Depositing into bucket
+                        state = States.DEPOSITING;
+                        break;
+                    }
+                    else if (!drive.isBusy()) {
+                        state = States.RESETTING;
+                        break;
                     }
                 }
+            }
             // Bringing held sample to the bucket
-            } else if (state == DEPOSITING) {
-                // Depositing last one into bucket
+            else if (state == States.DEPOSITING) {
+                // Running full deposit sequence
                 depositSampleIntoBucket();
 
-                lastSampleBeingCollected = collectedSamples >= 2;
+                collectedSamples++;
 
                 // Stop searching if all 3 samples have been collected
                 if (collectedSamples == 3) {
                     break;
                 }
 
-                // Returning to position
-                drive.followTrajectorySequence(bucketToSampleScanTrajectory);
-                state = SEARCHING;
+                if (collectedSamples == 2) {
+                    claw.wristVertical();
+                }
+
+                // Setting up proper trajectory
+                resetScan();
+
+                state = States.SEARCHING;
             }
         }
 
