@@ -6,6 +6,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.control.opmodes.Positions;
+import org.firstinspires.ftc.teamcode.control.systems.Claw;
+import org.firstinspires.ftc.teamcode.control.systems.Link;
 
 @TeleOp(name = "League Controls", group = "teleops")
 public class LeagueControls extends BaseTeleop {
@@ -46,16 +48,16 @@ public class LeagueControls extends BaseTeleop {
             isHanging = true;
 
             // Actually slamming it down
-            vs.hang();
+            vs.customPosition(100);
 
-            waitSeconds(0.5);
+            waitSeconds(0.2);
             vs.hingeForceHang();
 
             // Returning back to normal position
-            waitSeconds(0.7);
+            waitSeconds(1.0);
             vs.openClaw();
 
-            waitSeconds(0.2);
+            waitSeconds(0.3);
             vs.hingePickup();
             vs.down();
         }
@@ -218,11 +220,16 @@ public class LeagueControls extends BaseTeleop {
 
             // Grabbing Pixel into the viperslide claw
             case "leftBumper":
-                vs.closeClaw();
+                link.setCustomPosition(Link.IN + (Link.OUT * 0.3));
 
-                timeoutRunnable(0.85, () -> claw.fingerOpen());
+                vs.openClaw();
+                vs.down();
 
-                timeoutRunnable(1.0, () -> {
+                timeoutRunnable(0.8, () -> link.startPosition());
+                timeoutRunnable(1.1, () -> vs.closeClaw());
+                timeoutRunnable(1.3, () -> claw.fingerOpen());
+
+                timeoutRunnable(1.35, () -> {
                     claw.crane();
                 });
 
@@ -250,10 +257,10 @@ public class LeagueControls extends BaseTeleop {
 
             // Adjusting Wrist
             case "leftStick":
-//                claw.wristRotatedPercent(gamepad2.left_stick_x);
+                claw.wristVertical();
                 break;
             case "rightStick":
-//                claw.elbowPositionPercent(1.0 - Math.abs(gamepad2.right_stick_y));
+                claw.setCustomWristPosition(Claw.WRIST_CENTER + ((Claw.WRIST_CENTER - Claw.WRIST_VERTICAL) / 2));
                 break;
             default:
                 claw.wristDeposit();

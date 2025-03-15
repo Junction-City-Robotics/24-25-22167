@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.roadrunner.trajectorysequence.TrajectorySe
 @Config
 public class LeftSideAuto extends BaseAuto {
     // Scan locations
-    private static final Pose2d SAMPLE_SCAN_LOCATION = new Pose2d(-32.75, 45, Math.toRadians(0));
+    private static final Pose2d SAMPLE_SCAN_LOCATION = new Pose2d(-34.5, 45, Math.toRadians(0));
     private static final Pose2d LAST_SAMPLE_SCAN_LOCATION = new Pose2d(-23.5, 55, Math.toRadians(90));
 
     // Trajectories
@@ -41,7 +41,7 @@ public class LeftSideAuto extends BaseAuto {
     public static double SCAN_TIME = 20; // (Seconds)
 
     public static boolean COUNT_RESETS_TILL_ABORT = false;
-    public static int RESETS_TILL_ABORT = 3;
+    public static int RESETS_TILL_ABORT = 2;
 
     /**
      * <p>
@@ -160,11 +160,11 @@ public class LeftSideAuto extends BaseAuto {
 
                 // Bringing VS Up to deposit
                 .addTemporalMarker(1.45, () -> vs.up())
-                .waitSeconds(0.7)
+                .waitSeconds(0.5)
 
                 // Dropping sample in
                 .addTemporalMarker(() -> vs.hingeBucket())
-                .waitSeconds(0.4)
+                .waitSeconds(0.7)
                 .addTemporalMarker(() -> {
                     vs.openClaw();
                     claw.crane();
@@ -187,13 +187,13 @@ public class LeftSideAuto extends BaseAuto {
                 })
 
                 // Parking at 1st level ascent
-                .splineTo(Positions.LEFT_NEAR.vec().plus(new Vector2d(15, 15)), Math.toRadians(90))
+                .splineTo(Positions.BUCKETS.vec().plus(new Vector2d(40, 10)), Math.toRadians(45))
                 .setReversed(true)
-                .splineTo(Positions.LEFT_NEAR.vec(), Math.toRadians(-90))
+                .splineTo(Positions.LEFT_NEAR.vec().plus(new Vector2d(1, 0)), Math.toRadians(-90))
                 .setReversed(false)
 
                 // Touching lower bar
-//                .addTemporalMarker(() -> vs.hingeForceHang())
+                .addTemporalMarker(() -> vs.hingeTouchBar())
                 .build();
 
         telemetry.addData("Trajectories", "COMPLETE");

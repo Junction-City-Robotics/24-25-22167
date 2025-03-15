@@ -1,7 +1,9 @@
 package org.firstinspires.ftc.teamcode.control.opmodes.autos;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.acmerobotics.roadrunner.trajectory.constraints.MecanumVelocityConstraint;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
@@ -13,13 +15,14 @@ import org.firstinspires.ftc.teamcode.roadrunner.trajectorysequence.TrajectorySe
 import org.firstinspires.ftc.teamcode.control.Positions;
 
 @Autonomous(name = "Right Side Auto", group = "autos")
+@Config
 public class RightSideAuto extends BaseAuto {
     // Non Dynamic Trajectories
     private TrajectorySequence parkTrajectory;
-    private TrajectorySequence depositSampleTrajectory;
+    private TrajectorySequence nearDepositSampleTrajectory;
+    private TrajectorySequence extendedDepositSampleTrajectory;
     private TrajectorySequence specimenPickupTrajectory;
-
-    public static Pose2d COLLECTION_SPOT = Positions.PARKING.plus(new Pose2d());
+    private TrajectorySequence firstSpecimenPickupTrajectory;
 
     // Logic Structure
     private enum States {
@@ -32,7 +35,7 @@ public class RightSideAuto extends BaseAuto {
     private boolean continueLoop = true;
 
     // Hanging Data
-    private static final Vector2d HANG_START_POSITION = Positions.FRONT_CENTER.vec().plus(new Vector2d(7.5, 12));
+    private static final Vector2d HANG_START_POSITION = Positions.FRONT_CENTER.vec().plus(new Vector2d(7.5, -8));
     private double specimenBarOffset = 0;
     private int hungSpecimens = 0;
 
@@ -41,10 +44,12 @@ public class RightSideAuto extends BaseAuto {
     private boolean hasSpecimenReadyToPickup = false;
 
     // Scan Data
-    private static final Pose2d SAMPLE_SCAN_LOCATION = new Pose2d(-32.75, -45, Math.toRadians(0));
-    private static final Pose2d LAST_SAMPLE_SCAN_LOCATION = new Pose2d(-23.5, -55, Math.toRadians(90));
+    public static Pose2d SAMPLE_SCAN_LOCATION = new Pose2d(-22.5, -36, Math.toRadians(270));
 
-    public static double SCAN_VELOCITY_PERCENT = 0.3;
+    public static Pose2d DROP_OFF_SPOT = Positions.PARKING.plus(new Pose2d(5, -16, Math.toRadians(180)));
+    public static Pose2d COLLECTION_SPOT = DROP_OFF_SPOT.plus(new Pose2d(7, 6, 0));
+
+    public static double SCAN_VELOCITY_PERCENT = 0.22;
 
     private int collectedSamples = 0;
 
@@ -53,18 +58,62 @@ public class RightSideAuto extends BaseAuto {
      *     Full thing to hang a held specimen.
      * </p>
      */
-    private void hangSpecimen() {
-        TrajectorySequence hangTrajectory = drive.trajectorySequenceBuilder(Positions.RIGHT_START)
-                // Getting into proper position
-                .setReversed(true)
-                .splineTo(HANG_START_POSITION.plus(new Vector2d(0, specimenBarOffset)), Math.toRadians(0))
-                .setReversed(false)
+    private void hangSpecimen(boolean firstHang) {
+        TrajectorySequence hangTrajectory;
+        if (firstHang) {
+            hangTrajectory = drive.trajectorySequenceBuilder(Positions.RIGHT_START)
+                    // Getting into proper position
+                    .addTemporalMarker(() -> {
+                        vs.hang();
+                        vs.closeClaw();
+                        link.startPosition();
+                    })
 
-                .build();
+                    .setReversed(true)
+                    .splineTo(HANG_START_POSITION.plus(new Vector2d(0, specimenBarOffset)), Math.toRadians(0))
+                    .setReversed(false)
+
+                    .addDisplacementMarker(9.5, () -> vs.hingeForceHang())
+                    .addTemporalMarker(9.5 + 0.15, () -> vs.openClaw())
+
+                    // Useful move
+                    .addTemporalMarker(0.5, () -> claw.crane())
+
+                    .build();
+        } else {
+            hangTrajectory = drive.trajectorySequenceBuilder(Positions.RIGHT_START)
+                    // Getting into proper position
+                    .addTemporalMarker(() -> {
+                        claw.deposit();
+
+                        link.setCustomPosition(Link.IN + (Link.OUT * 0.3));
+
+                        vs.openClaw();
+                        vs.down();
+                        vs.hingePickup();
+                    })
+                    .addTemporalMarker(0.7, () -> link.startPosition())
+                    .addTemporalMarker(1.2, () -> vs.closeClaw())
+                    .addTemporalMarker(1.4, () -> {
+                        claw.fingerOpen();
+                        claw.crane();
+                        vs.hang();
+                    })
+                    .addTemporalMarker(1.5, () -> vs.hingeForceHang())
+
+                    .setReversed(true)
+                    .splineTo(HANG_START_POSITION.plus(new Vector2d(0, specimenBarOffset)), Math.toRadians(0))
+                    .setReversed(false)
+                    .waitSeconds(0.65)
+                    .addTemporalMarker(() -> vs.openClaw())
+
+                    .build();
+        }
+
 
         drive.followTrajectorySequence(hangTrajectory);
 
-        specimenBarOffset -= 3;
+        specimenBarOffset += 4;
         hungSpecimens++;
     }
 
@@ -75,19 +124,26 @@ public class RightSideAuto extends BaseAuto {
      *     a little bit first.
      * </p>
      */
-    private void resetScan() {
+    private void resetScan(boolean reverse) {
+        link.startPosition();
+
+        double added = 0;
+        if (collectedSamples == 1)
+            added = 4;
+        else if (collectedSamples == 2)
+            added = 11;
+
         TrajectorySequence resetTrajectory;
-        if (collectedSamples == 2) {
+        if (reverse) {
             resetTrajectory = drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                    .splineTo(LAST_SAMPLE_SCAN_LOCATION.vec(), LAST_SAMPLE_SCAN_LOCATION.getHeading())
-                    .build();
-        } else if (collectedSamples == 1) {
-            resetTrajectory = drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                    .splineTo(SAMPLE_SCAN_LOCATION.vec().plus(new Vector2d(0, -8)), SAMPLE_SCAN_LOCATION.getHeading())
+                    .setReversed(true)
+                    .splineTo(SAMPLE_SCAN_LOCATION.vec().plus(new Vector2d(0, -added)), -SAMPLE_SCAN_LOCATION.getHeading())
+                    .setReversed(false)
                     .build();
         } else {
             resetTrajectory = drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                    .splineTo(SAMPLE_SCAN_LOCATION.vec(), SAMPLE_SCAN_LOCATION.getHeading())
+                    .splineTo(HANG_START_POSITION.plus(new Vector2d(-11, -12)), SAMPLE_SCAN_LOCATION.getHeading())
+                    .splineTo(SAMPLE_SCAN_LOCATION.vec().plus(new Vector2d(0, -added)), SAMPLE_SCAN_LOCATION.getHeading())
                     .build();
         }
 
@@ -101,22 +157,12 @@ public class RightSideAuto extends BaseAuto {
      * </p>
      */
     private void startScan() {
-        TrajectorySequence scanTrajectory;
-        if (collectedSamples == 2) {
-            scanTrajectory = drive.trajectorySequenceBuilder(drive.getPoseEstimate())
+        TrajectorySequence scanTrajectory = drive.trajectorySequenceBuilder(drive.getPoseEstimate())
                     .setVelConstraint(new MecanumVelocityConstraint(DriveConstants.MAX_VEL * SCAN_VELOCITY_PERCENT, DriveConstants.TRACK_WIDTH))
-                    .forward(8)
+                    .splineTo(drive.getPoseEstimate().plus(new Pose2d(0.5, -20, 0)).vec(), Math.toRadians(270))
                     .build();
 
             claw.wristVertical();
-        } else {
-            scanTrajectory = drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                    .setVelConstraint(new MecanumVelocityConstraint(DriveConstants.MAX_VEL * SCAN_VELOCITY_PERCENT, DriveConstants.TRACK_WIDTH))
-                    .strafeRight(24)
-                    .build();
-
-            claw.wristCenter();
-        }
 
         drive.followTrajectorySequenceAsync(scanTrajectory);
     }
@@ -131,7 +177,7 @@ public class RightSideAuto extends BaseAuto {
         telemetry.update();
 
         // Basic parking trajectory to finish the auto strong
-        parkTrajectory = drive.trajectorySequenceBuilder(Positions.RIGHT_START)
+        parkTrajectory = drive.trajectorySequenceBuilder(new Pose2d(HANG_START_POSITION.getX(), HANG_START_POSITION.getY(), Math.toRadians(180)))
                 .addTemporalMarker(() -> {
                     link.startPosition();
 
@@ -141,22 +187,72 @@ public class RightSideAuto extends BaseAuto {
                     vs.hingePickup();
                     vs.openClaw();
                 })
-                .splineTo(Positions.PARKING.vec(), Math.toRadians(0))
+                .splineTo(Positions.PARKING.vec().plus(new Vector2d(7, - 5 )), Math.toRadians(0))
                 .build();
 
         // Depositing sample to get turned into a specimen
-        depositSampleTrajectory = drive.trajectorySequenceBuilder(SAMPLE_SCAN_LOCATION)
-                .addTemporalMarker(() -> claw.crane())
-                .splineTo(Positions.PARKING.vec().plus(new Vector2d(3, -5)), Math.toRadians(180))
-                .addTemporalMarker(() -> claw.fingerOpen())
+        extendedDepositSampleTrajectory = drive.trajectorySequenceBuilder(SAMPLE_SCAN_LOCATION)
+                .addTemporalMarker(() -> {
+                    claw.crane();
+                })
+                .addTemporalMarker(0.6, () -> link.extendedPosition())
+                .splineTo(DROP_OFF_SPOT.vec().plus(new Vector2d(12, 6)), Math.toRadians(200))
+                .addTemporalMarker(1.0, () -> claw.fingerOpen())
+                .addTemporalMarker(() -> link.startPosition())
                 .build();
 
+        nearDepositSampleTrajectory = drive.trajectorySequenceBuilder(SAMPLE_SCAN_LOCATION)
+                .addTemporalMarker(() -> {
+                    claw.crane();
+                    link.startPosition();
+                })
+                .splineTo(DROP_OFF_SPOT.vec(), DROP_OFF_SPOT.getHeading())
+                .addTemporalMarker(() -> claw.fingerOpen())
+                .waitSeconds(0.3)
+                .addTemporalMarker(() -> link.startPosition())
+                .build();
+
+        telemetry.addData("Trajectories", "(Halfway) WAIT . . .");
+        telemetry.update();
+
         // Specimen Pickup
-        specimenPickupTrajectory = drive.trajectorySequenceBuilder(Positions.PARKING.plus(new Pose2d(3, -5, Math.toRadians(180))))
+        firstSpecimenPickupTrajectory = drive.trajectorySequenceBuilder(extendedDepositSampleTrajectory.end())
                 // Important things that need to be set
                 .addTemporalMarker(() -> {
                     claw.crane();
                     claw.fingerOpen();
+                    claw.wristCenter();
+
+                    link.setCustomPosition(Link.IN + (Link.OUT * 0.3));
+
+                    vs.down();
+                    vs.hingePickup();
+                    vs.clawIsOpen();
+                })
+
+                .setReversed(true)
+                .splineToConstantHeading(COLLECTION_SPOT.vec().plus(new Vector2d(10, 0)), Math.toRadians(0))
+                .setReversed(false)
+
+                .setVelConstraint(new MecanumVelocityConstraint(DriveConstants.MAX_VEL * 0.33, DriveConstants.TRACK_WIDTH))
+                .splineTo(COLLECTION_SPOT.vec(), COLLECTION_SPOT.getHeading())
+                .resetConstraints()
+
+                .addTemporalMarker(() -> claw.pickup())
+                .waitSeconds(0.3)
+                .addTemporalMarker(() -> claw.fingerClose())
+                .waitSeconds(0.3)
+
+                .build();
+
+        specimenPickupTrajectory = drive.trajectorySequenceBuilder(Positions.RIGHT_START)
+                // Important things that need to be set
+                .addTemporalMarker(() -> {
+                    claw.crane();
+                    claw.fingerOpen();
+                    claw.wristCenter();
+
+                    link.setCustomPosition(Link.IN + (Link.OUT * 0.3));
 
                     vs.down();
                     vs.hingePickup();
@@ -167,22 +263,22 @@ public class RightSideAuto extends BaseAuto {
                 .splineTo(COLLECTION_SPOT.vec(), COLLECTION_SPOT.getHeading())
 
                 // Pickup
+                .waitSeconds(0.4)
                 .addTemporalMarker(() -> claw.pickup())
-                .waitSeconds(0.2)
+                .waitSeconds(0.4)
                 .addTemporalMarker(() -> claw.fingerClose())
                 .waitSeconds(0.2)
 
                 // Transfer
                 .addTemporalMarker(() -> {
-                    link.setCustomPosition(Link.IN + (Link.OUT * 0.3));
                     claw.crane();
                 })
-                .waitSeconds(0.2)
+                .waitSeconds(0.3)
 
                 .addTemporalMarker(() -> link.startPosition())
                 .waitSeconds(0.3)
                 .addTemporalMarker(() -> vs.closeClaw())
-                .waitSeconds(0.1)
+                .waitSeconds(0.2)
                 .addTemporalMarker(() -> claw.fingerOpen())
 
                 .build();
@@ -203,9 +299,12 @@ public class RightSideAuto extends BaseAuto {
         claw.wristCenter();
 
         // Hanging first specimen (Held)
-        hangSpecimen();
+        hangSpecimen(true);
 
         // Run hanging loop
+        boolean firstReset = true;
+        boolean firstCollect = true;
+
         States state = States.RESETTING;
         while (!isStopRequested() && opModeIsActive() && continueLoop) {
             telemetry.addData("Hung Specimens", hungSpecimens);
@@ -213,15 +312,25 @@ public class RightSideAuto extends BaseAuto {
             telemetry.addData("Has Specimen Ready for Pickup", hasSpecimenReadyToPickup);
             telemetry.addData("Collected Samples", collectedSamples);
             telemetry.addData("Current State", state);
+            telemetry.update();
 
             switch (state) {
                 case RESETTING: {
-                    resetScan();
+                    vs.down();
+                    vs.hingePickup();
+                    vs.openClaw();
+
+                    resetScan(!firstReset);
+                    firstReset = false;
 
                     state = States.SCANNING;
 
                     break;
                 } case SCANNING: {
+                    vs.down();
+                    vs.hingePickup();
+                    vs.openClaw();
+
                     startScan();
                     while (!isStopRequested() && opModeIsActive()) {
                         drive.update();
@@ -237,6 +346,7 @@ public class RightSideAuto extends BaseAuto {
                             waitSeconds(0.25);
 
                             claw.crane();
+                            link.startPosition();
 
                             state = States.DEPOSITING;
                             break;
@@ -245,9 +355,9 @@ public class RightSideAuto extends BaseAuto {
                     collectedSamples++;
                     break;
                 } case DEPOSITING: {
-                    drive.followTrajectorySequence(depositSampleTrajectory);
+                    drive.followTrajectorySequence(extendedDepositSampleTrajectory);
 
-                    if (hasSpecimenReadyToPickup) {
+                    if (collectedSamples == 2) { // STOPPING AT 2 COLLECTED
                         state = States.COLLECTING;
                     } else {
                         state = States.RESETTING;
@@ -257,25 +367,33 @@ public class RightSideAuto extends BaseAuto {
 
                     break;
                 } case COLLECTING: {
-                    drive.followTrajectorySequence(specimenPickupTrajectory);
+                    drive.followTrajectorySequence(firstSpecimenPickupTrajectory);
 
                     hasSpecimen = true;
 
                     state = States.HANGING;
                     break;
                 } case HANGING: {
-                    hangSpecimen();
+                    telemetry.addData("Hung", hungSpecimens);
+                    telemetry.update();
+                    hangSpecimen(false);
 
                     hasSpecimen = false;
-
-                    if (collectedSamples > 3) {
-                        state = States.RESETTING;
-                    } else if (hasSpecimenReadyToPickup) {
-                        state = States.COLLECTING;
-                    } else {
+                    telemetry.addData("Hung", hungSpecimens);
+                    telemetry.update();
+                    if (hungSpecimens == 3) {
                         continueLoop = false;
-                        break;
                     }
+
+//                    if (collectedSamples > 2) { // USUALLY 3
+//                        state = States.RESETTING;
+//                    } else
+//                        if (hungSpecimens < 4) {
+                        state = States.COLLECTING;
+//                    } else {
+//                        continueLoop = false;
+//                        break;
+//                    }
 
                     break;
                 }

@@ -40,7 +40,7 @@ public class ViperSlide {
     public static int TOP_POSITION = 2300;
     public static int BOUNCED_HANG_POSITION = 200;
     public static int HANG_POSITION = 150;
-    public static int BOTTOM_POSITION = -1;
+    public static int BOTTOM_POSITION = 2;
 
     // Claw Positions
     public static double CLAW_OPEN = 0.15;
@@ -49,6 +49,7 @@ public class ViperSlide {
     // Hinge Positions
     public static double HINGE_PICKUP = 0.95;
     public static double HINGE_BUCKET = 0.14;
+    public static double HINGE_TOUCH_BAR = 0.2;
     public static double HINGE_FORCE_HANG = 0.0;
 
     // Directions
@@ -308,6 +309,10 @@ public class ViperSlide {
 
     public void hingeBucket() {
         hinge.setPosition(HINGE_BUCKET);
+    }
+
+    public void hingeTouchBar() {
+        hinge.setPosition(HINGE_TOUCH_BAR);
     }
 
     public void customHingePosition (double position) {

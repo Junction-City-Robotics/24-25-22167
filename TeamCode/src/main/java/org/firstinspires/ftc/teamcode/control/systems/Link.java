@@ -12,13 +12,15 @@ public class Link {
     private final Servo l1; // Left
     private final Servo l2; // Right
 
-    public static double RIGHT_SERVO_OFFSET = 0.0;
+    public static double RIGHT_SERVO_OFFSET = 0.025;
 
     /*
      * Static set positions for servos (Config Variables)
      */
     public static double IN = 0.0;
     public static double OUT = 0.23;
+
+    public static boolean isExtended = false;
 
     public Link(String l1Name, String l2Name, HardwareMap hMap) {
         l1 = hMap.get(Servo.class, l1Name);
@@ -28,16 +30,24 @@ public class Link {
     }
 
     public void startPosition() {
+        isExtended = false;
         l1.setPosition(IN);
         l2.setPosition(IN + RIGHT_SERVO_OFFSET);
     }
 
     public void extendedPosition() {
+        isExtended = true;
         l1.setPosition(OUT);
         l2.setPosition(OUT + RIGHT_SERVO_OFFSET);
     }
 
     public void setCustomPosition(double position) {
+        l1.setPosition(position);
+        l2.setPosition(position + RIGHT_SERVO_OFFSET);
+    }
+
+    public void setCustomPosition(double position, boolean newExtendedStatus) {
+        isExtended = newExtendedStatus;
         l1.setPosition(position);
         l2.setPosition(position + RIGHT_SERVO_OFFSET);
     }
